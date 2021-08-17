@@ -10,9 +10,9 @@ from utils.utils import create_grid
 from utils.utils import ResizeConfig as config
 
 
-EXP_NAME = 'multi'
+EXP_NAME = 'poc'
 PATH = 'stone.png'
-PTH_NAME = '8'
+PTH_NAME = 'final'
 
 
 if __name__ == '__main__':
@@ -44,4 +44,5 @@ if __name__ == '__main__':
 
         pred = pred.permute(2, 0, 1)
         save_image(pred, f'exps/{EXP_NAME}/infer/{idx}.jpg')
+        save_image(cur_scale, f'exps/{EXP_NAME}/infer/{idx}_origin.jpg')
 

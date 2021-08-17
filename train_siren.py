@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from model import SirenModel
 from utils.utils import create_grid
 
-EXP_NAME = 'debug'
+EXP_NAME = 'poc'
 PATH = 'stone.png'
 MAX_ITERS = 1000
 LR = 1e-4
@@ -17,6 +17,7 @@ LR = 1e-4
 
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/img', exist_ok=True)
+    os.makedirs(f'exps/{EXP_NAME}/ckpt', exist_ok=True)
     os.makedirs(f'exps/{EXP_NAME}/logs', exist_ok=True)
     writer = SummaryWriter(f'exps/{EXP_NAME}/logs')
 
@@ -50,3 +51,4 @@ if __name__ == '__main__':
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')
 
 
+    torch.save(model.state_dict(), f'exps/{EXP_NAME}/ckpt/final.pth')

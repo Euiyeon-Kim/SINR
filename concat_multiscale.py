@@ -1,6 +1,6 @@
 '''
     Train multiscale INR
-    grid + output's W, H - Embedding -> use as positional information
+    `grid + output's 1/W, 1/H -> use as positional information`
 '''
 
 import os
@@ -23,8 +23,6 @@ MAX_ITERS = 1000
 LR = 1e-4
 
 
-
-
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/img', exist_ok=True)
     os.makedirs(f'exps/{EXP_NAME}/ckpt', exist_ok=True)
@@ -43,8 +41,7 @@ if __name__ == '__main__':
     adjust_scales(img, config)
     reals = creat_reals_pyramid(img, [], config)
 
-    embedder =
-    model = SirenModel(coord_dim=2, num_c=3).to(device)
+    model = SirenModel(coord_dim=4, num_c=3).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
@@ -53,13 +50,18 @@ if __name__ == '__main__':
         os.makedirs(f'exps/{EXP_NAME}/img/{idx}', exist_ok=True)
         img = torch.squeeze(cur_scale).permute(1, 2, 0)
         h, w, c = img.shape
+        hw = torch.FloatTensor([1./h, 1./w]).to(device)
+        hw = hw.repeat(h, w, 1)
         grid = create_grid(h, w, device=device)
-        grids.append(grid)
+        pos_info = torch.cat((grid, hw), dim=-1)
+        grids.append(pos_info)
         reals[idx] = img
 
     for step in range(MAX_ITERS):
         for idx, (grid, real) in enumerate(zip(grids, reals)):
+            h, w, _ = grid.shape
             pred = model(grid)
+
             loss = loss_fn(pred, real)
 
             loss.backward()
