@@ -8,7 +8,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from utils.utils import create_grid
-from model import SirenModel, MappingNet
+from models.model import SirenModel
 
 EXP_NAME = 'concat'
 PATH = 'stone.png'

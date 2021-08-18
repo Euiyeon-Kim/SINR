@@ -7,7 +7,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from utils.utils import ResizeConfig as config
-from model import SirenModel
+from models.model import SirenModel
 
 
 EXP_NAME = 'multi'

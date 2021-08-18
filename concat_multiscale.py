@@ -8,16 +8,15 @@ import numpy as np
 from PIL import Image
 
 import torch
-import torch.nn as nn
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from model import SirenModel
+from models.model import SirenModel
 from utils.utils import create_grid
 from utils.utils import ResizeConfig as config
 
 
-EXP_NAME = 'multi_embed'
+EXP_NAME = 'multi_concat'
 PATH = 'stone.png'
 MAX_ITERS = 1000
 LR = 1e-4

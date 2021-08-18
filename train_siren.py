@@ -6,7 +6,7 @@ import torch
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from model import SirenModel
+from models.model import SirenModel
 from utils.utils import create_grid
 
 EXP_NAME = 'poc'

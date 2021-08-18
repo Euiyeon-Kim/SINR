@@ -1,14 +1,10 @@
 import os
-import numpy as np
-from PIL import Image
 
 import torch
 from torchvision.utils import save_image
 
-from model import SirenModel
+from models.model import SirenModel
 from utils.utils import create_grid
-from utils.utils import ResizeConfig as config
-
 
 EXP_NAME = 'poc'
 PATH = 'stone.png'

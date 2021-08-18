@@ -4,24 +4,6 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
-
-class Linear(nn.Linear):
-    def __init__(self, in_f, out_f, bias=True):
-        super(Linear, self).__init__(in_f, out_f, bias=bias)
-
-    def forward(self, x, params=None):
-        if params is None:
-            x = super(Linear, self).forward(x)
-        else:
-            weight, bias = params.get('weight'), params.get('bias')
-            if weight is None:
-                weight = self.weight
-            if bias is None:
-                bias = self.bias
-            x = F.linear(x, weight, bias)
-        return x
 
 
 class SirenLayer(nn.Module):
@@ -31,7 +13,7 @@ class SirenLayer(nn.Module):
         self.out_f = out_f
         self.w0 = w0
 
-        self.linear = Linear(in_f, out_f)
+        self.linear = nn.Linear(in_f, out_f)
         self.is_first = is_first
         self.is_last = is_last
 
@@ -43,8 +25,8 @@ class SirenLayer(nn.Module):
             nn.init.uniform_(self.linear.weight, a=-b, b=b)
             nn.init.zeros_(self.linear.bias)
 
-    def forward(self, x, params=None):
-        x = self.linear(x, params)
+    def forward(self, x):
+        x = self.linear(x)
         return x if self.is_last else torch.sin(self.w0 * x)
 
 
@@ -57,16 +39,8 @@ class SirenModel(nn.Module):
         layers.append(SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True))
         self.layers = nn.Sequential(*layers)
 
-    def forward(self, coords, params=None):
-        if params is None:
-            x = self.layers(coords)
-        else:
-            x = coords
-            for idx, layer in enumerate(self.layers):
-                layer_param = OrderedDict()
-                layer_param['weight'] = params.get(f'layers.{idx}.linear.weight')
-                layer_param['bias'] = params.get(f'layers.{idx}.linear.bias')
-                x = layer(x, layer_param)
+    def forward(self, coords):
+        x = self.layers(coords)
         return x
 
 
@@ -83,6 +57,28 @@ class MappingNet(nn.Module):
 
     def forward(self, x):
         return self.layers(x)
+
+
+class Modulator(nn.Module):
+    def __init__(self, in_f, hidden_node=256, depth=5):
+        super().__init__()
+        self.layers = nn.ModuleList([])
+
+        for i in range(depth):
+            dim = in_f if i == 0 else (hidden_node + in_f)
+            self.layers.append(nn.Sequential(
+                nn.Linear(dim, hidden_node),
+                nn.ReLU()
+            ))
+
+    def forward(self, z):
+        x = z
+        hiddens = []
+        for layer in self.layers:
+            x = layer(x)
+            hiddens.append(x)
+            x = torch.cat((x, z))
+        return tuple(hiddens)
 
 
 if __name__ == '__main__':
