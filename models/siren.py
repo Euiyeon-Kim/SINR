@@ -8,7 +8,7 @@ import torch.nn as nn
 
 class SirenLayer(nn.Module):
     def __init__(self, in_f, out_f, w0=200, is_first=False, is_last=False):
-        super().__init__()
+        super(SirenLayer, self).__init__()
         self.in_f = in_f
         self.out_f = out_f
         self.w0 = w0
@@ -32,7 +32,7 @@ class SirenLayer(nn.Module):
 
 class SirenModel(nn.Module):
     def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5):
-        super().__init__()
+        super(SirenModel, self).__init__()
         layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
         for _ in range(1, depth - 1):
             layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
@@ -44,24 +44,9 @@ class SirenModel(nn.Module):
         return x
 
 
-class MappingNet(nn.Module):
-    def __init__(self, in_f, out_f, hidden_node=128, depth=3):
-        super().__init__()
-        layers = [nn.Linear(in_f, hidden_node), nn.LeakyReLU(0.2)]
-        for _ in range(1, depth - 1):
-            layers.append(nn.Linear(hidden_node, hidden_node))
-            layers.append(nn.LeakyReLU(0.2))
-        layers.append(nn.Linear(hidden_node, out_f))
-        layers.append(nn.LeakyReLU(0.2))
-        self.layers = nn.Sequential(*layers)
-
-    def forward(self, x):
-        return self.layers(x)
-
-
 class Modulator(nn.Module):
     def __init__(self, in_f, hidden_node=256, depth=5):
-        super().__init__()
+        super(Modulator, self).__init__()
         self.layers = nn.ModuleList([])
 
         for i in range(depth):
@@ -79,8 +64,3 @@ class Modulator(nn.Module):
             hiddens.append(x)
             x = torch.cat((x, z))
         return tuple(hiddens)
-
-
-if __name__ == '__main__':
-    mapper = MappingNet(64, 64, 64, 5)
-    print(mapper)

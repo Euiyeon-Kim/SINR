@@ -11,7 +11,7 @@ import torch
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from models.model import SirenModel
+from models.siren import SirenModel
 from utils.utils import create_grid
 from utils.utils import ResizeConfig as config
 

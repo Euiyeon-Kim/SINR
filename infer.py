@@ -3,7 +3,7 @@ import os
 import torch
 from torchvision.utils import save_image
 
-from models.model import SirenModel
+from models.siren import SirenModel
 from utils.utils import create_grid
 
 EXP_NAME = 'poc'

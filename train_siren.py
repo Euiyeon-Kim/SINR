@@ -6,12 +6,12 @@ import torch
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from models.model import SirenModel
+from models.siren import SirenModel
 from utils.utils import create_grid
 
 EXP_NAME = 'poc'
 PATH = 'stone.png'
-MAX_ITERS = 1000
+MAX_ITERS = 3000
 LR = 1e-4
 
 
