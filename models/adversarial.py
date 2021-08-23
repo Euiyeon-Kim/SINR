@@ -2,7 +2,7 @@ from torch import nn
 
 
 class MappingNet(nn.Module):
-    def __init__(self, in_f, out_f, hidden_node=128, depth=3):
+    def __init__(self, in_f, out_f, hidden_node=256, depth=5):
         super(MappingNet, self).__init__()
         layers = [nn.Linear(in_f, hidden_node), nn.LeakyReLU(0.2)]
         for _ in range(1, depth - 1):
@@ -13,7 +13,23 @@ class MappingNet(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        return self.layers(x)
+        return nn.Sigmoid()(self.layers(x))
+
+
+class MappingConv(nn.Module):
+    def __init__(self, in_f, out_f, hidden_node=256, depth=5):
+        super(MappingConv, self).__init__()
+        layers = [nn.Linear(in_f, hidden_node), nn.LeakyReLU(0.2)]
+        for _ in range(1, depth - 1):
+            layers.append(nn.Linear(hidden_node, hidden_node))
+            layers.append(nn.LeakyReLU(0.2))
+        layers.append(nn.Linear(hidden_node, out_f))
+        layers.append(nn.LeakyReLU(0.2))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, x):
+        return nn.Sigmoid()(self.layers(x))
+
 
 
 class ConvBlock(nn.Sequential):

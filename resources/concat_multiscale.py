@@ -17,7 +17,7 @@ from utils.utils import ResizeConfig as config
 
 
 EXP_NAME = 'multi_concat'
-PATH = 'stone.png'
+PATH = '../stone.png'
 MAX_ITERS = 1000
 LR = 1e-4
 
