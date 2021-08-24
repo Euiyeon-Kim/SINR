@@ -38,15 +38,24 @@ class VGGEncoder(nn.Module):
     def __init__(self):
         super(VGGEncoder, self).__init__()
         self.layers = vgg16(pretrained=True).features[:15]
-
-        for param in self.layers.parameters():
-            param.requires_grad = False
+        self.linears = nn.Sequential(
+            nn.Linear(256, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 256),
+            nn.LeakyReLU(),
+        )
 
     def forward(self, x):
         x = self.layers(x)
-        return x.mean(dim=(-2, -1))
+        x = x.mean(dim=(-2, -1))
+        return self.linears(x)
 
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     e = VGGEncoder().to(device)
+    from torchsummary import summary
+    summary(e, (3, 32, 32))
+    exit()
