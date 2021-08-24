@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from models.siren import SirenModel
 from utils.utils import create_grid
 
-EXP_NAME = 'w_balloon'
+EXP_NAME = 'single_balloon'
 PATH = './inputs/balloons.png'
 MAX_ITERS = 1000
 LR = 1e-4
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     grid = create_grid(h, w, device=device)
     in_f = grid.shape[-1]
 
-    model = SirenModel(coord_dim=in_f, num_c=c).to(device)
+    model = SirenModel(coord_dim=in_f, num_c=c, depth=3).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 

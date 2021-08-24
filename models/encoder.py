@@ -38,7 +38,10 @@ class VGGEncoder(nn.Module):
     def __init__(self):
         super(VGGEncoder, self).__init__()
         self.layers = vgg16(pretrained=True).features[:15]
-    
+
+        for param in self.layers.parameters():
+            param.requires_grad = False
+
     def forward(self, x):
         x = self.layers(x)
         return x.mean(dim=(-2, -1))

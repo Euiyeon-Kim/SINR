@@ -6,11 +6,11 @@ from torchvision.utils import save_image
 from models.siren import SirenModel
 from utils.utils import create_grid
 
-EXP_NAME = 'poc'
-PATH = 'stone.png'
+EXP_NAME = 'single_balloon'
+PATH = './inputs/balloons.png'
 PTH_NAME = 'final'
 INF_H = 512
-INF_W = 512
+INF_W = 768
 
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = SirenModel(coord_dim=2, num_c=3).to(device)
+    model = SirenModel(coord_dim=2, num_c=3, depth=3).to(device)
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))
 
     grid = create_grid(INF_H, INF_W, device=device)

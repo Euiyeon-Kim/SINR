@@ -19,7 +19,8 @@ from models.adversarial import Discriminator, MappingNet
     Result
     W(MLP)에서 spatial 정보가 다 날아가서 실패하는 듯
 '''
-EXP_NAME = 'w_balloon'
+
+EXP_NAME = 'mlp_w_balloon'
 PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 MAX_ITERS = 10000
@@ -44,11 +45,14 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     img = torch.FloatTensor(img).permute(2, 0, 1).to(device)
     grid = create_grid(h, w, device=device)
-
+    print(torch.min(grid), torch.max(grid))
+    exit()
     model = SirenModel(coord_dim=2, num_c=3).to(device)
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))
     for param in model.parameters():
         param.requires_grad = False
+    recon = model(grid).permute(2, 0, 1)
+    save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
 
     mapper = MappingNet(in_f=2, out_f=2).to(device)
     m_optim = torch.optim.Adam(mapper.parameters(), lr=LR, betas=(0.5, 0.999))
