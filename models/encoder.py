@@ -16,28 +16,26 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.layers = nn.Sequential(
             nn.Conv2d(in_c, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
-            nn.BatchNorm2d(latent_dim),
             nn.LeakyReLU(0.2),
             nn.Conv2d(latent_dim, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
-            nn.BatchNorm2d(latent_dim),
             nn.LeakyReLU(0.2),
-            nn.Conv2d(latent_dim, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
-            nn.BatchNorm2d(latent_dim),
-            nn.LeakyReLU(0.2),
-            nn.Conv2d(latent_dim, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
-            nn.BatchNorm2d(latent_dim),
-            nn.LeakyReLU(0.2),
+        )
+        self.linears = nn.Sequential(
+            nn.Linear(latent_dim, latent_dim),
+            nn.LeakyReLU(0.2)
         )
 
     def forward(self, x):
         x = self.layers(x)
-        return x.mean(dim=(-2, -1))
+        x = x.mean(dim=(-2, -1))
+        x = self.linears(x)
+        return x
 
 
 class VGGEncoder(nn.Module):
     def __init__(self):
         super(VGGEncoder, self).__init__()
-        self.layers = vgg16(pretrained=True).features[:15]
+        self.layers = vgg16(pretrained=True).features[:13]
         self.linears = nn.Sequential(
             nn.Linear(256, 256),
             nn.LeakyReLU(),
@@ -55,7 +53,7 @@ class VGGEncoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    e = VGGEncoder().to(device)
+    e = Encoder().to(device)
     from torchsummary import summary
     summary(e, (3, 32, 32))
     exit()

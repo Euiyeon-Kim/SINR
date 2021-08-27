@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from utils.utils import create_grid
 from models.siren import ModulatedSirenModel
-from models.encoder import VGGEncoder
+from models.encoder import Encoder
 
 EXP_NAME = 'cat_mod'
 EPOCH = 1000
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     grid = create_grid(PATCH, PATCH, device=device)
 
-    encoder = VGGEncoder().to(device)
+    encoder = Encoder().to(device)
     model = ModulatedSirenModel(coord_dim=2, w0=30, num_c=3, latent_dim=256).to(device)
 
     optim = torch.optim.Adam(list(encoder.parameters())+list(model.parameters()), lr=LR)
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     cnt = 0
     for e in range(EPOCH):
-        for data in dataloader:
+        for idx, data in enumerate(dataloader):
             img = data.to(device)
 
             optim.zero_grad()
@@ -65,6 +65,7 @@ if __name__ == '__main__':
             loss.backward()
             optim.step()
 
+            print(f'{e}|{EPOCH}  {idx}|{len(dataloader)} : {loss.item():.9f}')
             writer.add_scalar("loss", loss.item(), cnt)
             cnt += 1
 

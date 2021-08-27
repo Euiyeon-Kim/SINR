@@ -7,16 +7,16 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import ModulatedSirenModel
-from models.encoder import VGGEncoder
+from models.encoder import Encoder
 from utils.utils import create_grid
 
 EXP_NAME = 'mod_balloon'
 PATH = './inputs/balloons.png'
-MAX_ITERS = 10000
+MAX_ITERS = 1000000
 LR = 1e-4
 
 LATENT_DIM = 256
-PATCH_SIZE = 120
+PATCH_SIZE = 32
 
 
 if __name__ == '__main__':
@@ -39,17 +39,15 @@ if __name__ == '__main__':
         transforms.ToTensor()
     ])
 
-    encoder = VGGEncoder().to(device)
+    encoder = Encoder().to(device)
     model = ModulatedSirenModel(coord_dim=in_f, num_c=3, w0=60, latent_dim=LATENT_DIM).to(device)
 
-    optim = torch.optim.Adam(model.parameters(), lr=LR)
+    optim = torch.optim.Adam(list(model.parameters())+list(encoder.parameters()), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
     for i in range(MAX_ITERS):
         patch = torch.unsqueeze(transforms(img), dim=0).to(device)
-
         model.train()
-
         optim.zero_grad()
 
         z = torch.squeeze(encoder(patch))
@@ -60,9 +58,10 @@ if __name__ == '__main__':
         loss.backward()
         optim.step()
 
+        print(f'{i}|{MAX_ITERS}: {loss.item():.9f}')
         writer.add_scalar("loss", loss.item(), i)
 
-        if (i+1) % 50 == 0:
+        if (i+1) % 500 == 0:
             save_image(patch[0], f'exps/{EXP_NAME}/img/{i}_origin.jpg')
             save_image(pred[0], f'exps/{EXP_NAME}/img/{i}_pred.jpg')
 
