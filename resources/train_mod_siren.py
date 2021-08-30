@@ -10,8 +10,8 @@ from models.siren import ModulatedSirenModel
 from models.encoder import Encoder
 from utils.utils import create_grid
 
-EXP_NAME = 'mod_balloon'
-PATH = './inputs/balloons.png'
+EXP_NAME = 'mod_bird'
+PATH = '../inputs/birds.png'
 MAX_ITERS = 1000000
 LR = 1e-4
 

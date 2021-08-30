@@ -17,11 +17,11 @@ class Encoder(nn.Module):
         self.layers = nn.Sequential(
             nn.Conv2d(in_c, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
             nn.LeakyReLU(0.2),
-            nn.Conv2d(latent_dim, latent_dim, kernel_size=(3, 3), stride=(1, 1)),
+            nn.Conv2d(latent_dim, latent_dim // 2, kernel_size=(3, 3), stride=(1, 1)),
             nn.LeakyReLU(0.2),
         )
         self.linears = nn.Sequential(
-            nn.Linear(latent_dim, latent_dim),
+            nn.Linear(latent_dim // 2, latent_dim),
             nn.LeakyReLU(0.2)
         )
 
