@@ -9,7 +9,6 @@ class MappingNet(nn.Module):
             layers.append(nn.Linear(hidden_node, hidden_node))
             layers.append(nn.LeakyReLU(0.2))
         layers.append(nn.Linear(hidden_node, out_f))
-        layers.append(nn.LeakyReLU(0.2))
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -36,6 +35,15 @@ class MappingConv(nn.Module):
         x = self.head(x)
         x = self.body(x)
         x = self.tail(x)
+        return x
+
+
+class Mapping1x1Conv(nn.Module):
+    def __init__(self):
+        super(Mapping1x1Conv, self).__init__()
+        layers = [nn.Conv2d()]
+
+    def forward(self, x):
         return x
 
 
