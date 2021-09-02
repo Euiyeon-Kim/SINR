@@ -4,8 +4,8 @@ import numpy as np
 from PIL import Image
 
 
-NAME = 'birds'
-PATH = f'./inputs/{NAME}.png'
+NAME = 'mountains'
+PATH = f'./inputs/{NAME}.jpg'
 PATCH_SIZE = 32
 OVERLAP = 16
 

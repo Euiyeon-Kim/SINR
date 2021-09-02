@@ -7,12 +7,16 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
+from models.fourier_feature import FFModel
 from utils.utils import create_grid
 
-EXP_NAME = 'mountain'
+EXP_NAME = 'fourier_siren_mountain'
 PATH = './inputs/mountains.jpg'
 MAX_ITERS = 2000
 LR = 1e-4
+
+SCALE = 10
+MAPPING_SIZE = 256
 
 
 if __name__ == '__main__':
@@ -30,7 +34,11 @@ if __name__ == '__main__':
     grid = create_grid(h, w, device=device)
     in_f = grid.shape[-1]
 
-    model = SirenModel(coord_dim=in_f, num_c=c).to(device)
+    B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
+    x_proj = (2. * np.pi * grid) @ B_gauss.t()
+    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=c).to(device)
+
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
@@ -38,7 +46,7 @@ if __name__ == '__main__':
         model.train()
         optim.zero_grad()
 
-        pred = model(grid)
+        pred = model(mapped_input)
         loss = loss_fn(pred, img)
 
         loss.backward()
@@ -50,5 +58,5 @@ if __name__ == '__main__':
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')
 
-
     torch.save(model.state_dict(), f'exps/{EXP_NAME}/ckpt/final.pth')
+    torch.save(B_gauss, f'exps/{EXP_NAME}/ckpt/B.pt')
