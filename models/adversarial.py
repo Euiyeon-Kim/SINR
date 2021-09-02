@@ -28,23 +28,13 @@ class MappingConv(nn.Module):
             block = ConvBlock(max(2 * N, min_nfc), max(N, min_nfc), 3, 1, 1)
             self.body.add_module('block%d' % (i + 1), block)
 
-        # WGAN-GP discriminator has no activation at last layer
         self.tail = nn.Conv2d(max(N, min_nfc), in_c, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
 
     def forward(self, x):
         x = self.head(x)
         x = self.body(x)
         x = self.tail(x)
-        return x
-
-
-class Mapping1x1Conv(nn.Module):
-    def __init__(self):
-        super(Mapping1x1Conv, self).__init__()
-        layers = [nn.Conv2d()]
-
-    def forward(self, x):
-        return x
+        return nn.Sigmoid()(x)
 
 
 class ConvBlock(nn.Sequential):
@@ -85,4 +75,4 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     d = MappingConv().to(device)
     print(d)
-    summary(d, (2, 256, 256))
+    summary(d, (2, 256, 160))

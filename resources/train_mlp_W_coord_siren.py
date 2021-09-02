@@ -71,7 +71,7 @@ if __name__ == '__main__':
             # Train with real image
             real_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(origin_grid), dim=0)
             real_prob_out = d(real_patch)
-            d_real_loss = -real_prob_out.mean()  # Maximize D(X) -> Minimize -D(X)\
+            d_real_loss = -real_prob_out.mean()  # Maximize D(X) -> Minimize -D(X)
             d_real_loss.backward(retain_graph=True)
 
             # Train with fake image
