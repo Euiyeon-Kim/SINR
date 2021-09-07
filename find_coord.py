@@ -39,10 +39,9 @@ if __name__ == '__main__':
     h, w, c = img.shape
 
     img = torch.FloatTensor(img).to(device)
-    grid = create_grid(366, 585, device=device).permute(2, 0, 1)
-    grid = RandomCrop(64)(grid).permute(1, 2, 0)
+    grid = create_grid(h, w, device=device)
 
-    B_real = torch.load(f'exps/{EXP_NAME}/ckpt/B.pt')
+    B_real = torch.load(f'exps/{EXP_NAME}/find_B/ckpt/B.pt')  # torch.load(f'exps/{EXP_NAME}/ckpt/B.pt')
     real_x = (2. * np.pi * grid) @ B_real.t()
     real_input = torch.cat([torch.sin(real_x), torch.cos(real_x)], dim=-1)
     origin = model(real_input)

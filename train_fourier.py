@@ -10,8 +10,8 @@ from models.siren import SirenModel
 from models.fourier_feature import FFModel
 from utils.utils import create_grid
 
-EXP_NAME = 'fourier_siren_mountain'
-PATH = './inputs/mountains.jpg'
+EXP_NAME = 'fourier_siren_balloons'
+PATH = './inputs/balloons.png'
 MAX_ITERS = 2000
 LR = 1e-4
 

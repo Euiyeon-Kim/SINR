@@ -6,14 +6,13 @@ from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision.utils import save_image
-from torchvision.transforms import RandomCrop
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+
 
 EXP_NAME = 'fourier_siren_mountain'
-PATH = './inputs/mountains_patch/1_9.jpg'
+PATH = '../inputs/mountains_patch/1_9.jpg'
 PTH_NAME = 'final'
 
 MAX_ITERS = 1000000

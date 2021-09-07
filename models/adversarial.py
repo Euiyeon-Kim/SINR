@@ -37,6 +37,28 @@ class MappingConv(nn.Module):
         return nn.Sigmoid()(x)
 
 
+class FMappingConv(nn.Module):
+    def __init__(self, in_c=1, out_c=512, nfc=32, min_nfc=32, num_layers=5):
+        super(FMappingConv, self).__init__()
+
+        N = nfc
+        self.head = ConvBlock(in_c, N, 3, 1, 1)
+
+        self.body = nn.Sequential()
+        for i in range(num_layers - 2):
+            N = int(nfc / pow(2, (i + 1)))
+            block = ConvBlock(max(2 * N, min_nfc), max(N, min_nfc), 3, 1, 1)
+            self.body.add_module('block%d' % (i + 1), block)
+
+        self.tail = nn.Conv2d(max(N, min_nfc), out_c, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+
+    def forward(self, x):
+        x = self.head(x)
+        x = self.body(x)
+        x = self.tail(x)
+        return nn.Tanh()(x)
+
+
 class ConvBlock(nn.Sequential):
     def __init__(self, in_channel, out_channel, kernel_size, stride, pad):
         super(ConvBlock, self).__init__()

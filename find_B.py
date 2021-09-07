@@ -6,7 +6,6 @@ from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision.utils import save_image
-from torchvision.transforms import RandomCrop
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
