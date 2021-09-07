@@ -25,6 +25,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))
     B = torch.load(f'exps/{EXP_NAME}/ckpt/B.pt')
     # B = torch.randn((MAPPING_SIZE, 2)).to(device) * 10
+
     grid = create_grid(INF_H, INF_W, device=device)
     x_proj = (2. * np.pi * grid) @ B.t()
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)

@@ -12,8 +12,14 @@ from models.siren import SirenModel
 from utils.utils import create_grid
 
 
+'''
+    Model weight만 fixed로 두고 coord와 B를 찾도록 함
+    -> 마찬가지로 안됨
+'''
+
+
 EXP_NAME = 'fourier_siren_mountain'
-PATH = './inputs/mountains_patch/1_9.jpg'
+PATH = '../inputs/mountains_patch/1_9.jpg'
 PTH_NAME = 'final'
 
 MAX_ITERS = 1000000

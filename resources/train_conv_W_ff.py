@@ -8,15 +8,22 @@ from torchvision.transforms import RandomCrop
 from torch.utils.tensorboard import SummaryWriter
 
 from utils.viz import visualize_grid
-from utils.utils import create_grid, calcul_gp
+from utils.utils import create_grid
+from utils.loss import calcul_gp
 from models.siren import SirenModel
 from models.adversarial import Discriminator, FMappingConv
 
+'''
+    INR weight fix
+    H*W 크기의 Noise coordinate를 받아서 Conv mapper로 H*W*256 크기의 ff input 생성
+    INR 통과시켜서 생성된 H*W 크기의 이미지를 patch size로 크롭해서 Discriminator input으로 사용
+'''
+
 
 EXP_NAME = 'ff_conv_w_balloons_32'
-PATH = './inputs/balloons.png'
-PTH_PATH = './exps/fourier_siren_balloons/ckpt/final.pth'
-B_PATH = './exps/fourier_siren_balloons/ckpt/B.pt'
+PATH = '../inputs/balloons.png'
+PTH_PATH = '../exps/fourier_siren_balloons/ckpt/final.pth'
+B_PATH = '../exps/fourier_siren_balloons/ckpt/B.pt'
 MAX_ITERS = 1000000
 LR = 1e-4
 

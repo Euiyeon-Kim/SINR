@@ -4,8 +4,8 @@ import numpy as np
 from PIL import Image
 
 
-NAME = 'birds'
-PATH = f'./inputs/{NAME}.png'
+NAME = 'mountains'
+PATH = f'./inputs/{NAME}.jpg'
 PATCH_SIZE = 32
 OVERLAP = 16
 
@@ -14,15 +14,15 @@ if __name__ == '__main__':
     os.makedirs(f'./inputs/{NAME}_patch', exist_ok=True)
     img = Image.open(PATH).convert('RGB')
     w, h = img.size
-    cut_h, cut_w = h % OVERLAP, w % OVERLAP
+    cut_h, cut_w = (h - PATCH_SIZE) % (PATCH_SIZE - OVERLAP), (w - PATCH_SIZE) % (PATCH_SIZE - OVERLAP)
     new_img = np.array(img)[cut_h // 2:h - (cut_h - (cut_h // 2)), cut_w // 2:w - (cut_w - (cut_w // 2))]
     new_h, new_w, _ = new_img.shape
-    # Image.fromarray(new_img).save(f'./inputs/{NAME}_patch/resized.jpg')
 
+    num_h = int((new_h - PATCH_SIZE) / (PATCH_SIZE - OVERLAP) + 1)
+    num_w = int((new_w - PATCH_SIZE) / (PATCH_SIZE - OVERLAP) + 1)
     h_offset, w_offset = 0, 0
-    for i in range(h // OVERLAP - 1):
-        for j in range(w // OVERLAP - 1):
-            print(h_offset, w_offset)
+    for i in range(num_h):
+        for j in range(num_w):
             patch = new_img[h_offset:h_offset+PATCH_SIZE, w_offset:w_offset+PATCH_SIZE, :]
             Image.fromarray(patch).save(f'./inputs/{NAME}_patch/{i}_{j}.jpg')
             w_offset += PATCH_SIZE - OVERLAP

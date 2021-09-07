@@ -30,7 +30,6 @@ def adjust_scales(real, config):
     return resized_real
 
 
-# To Do - Improve making pyramid process
 def creat_reals_pyramid(real, reals, config):
     for i in range(config.stop_scale+1):
         scale = math.pow(config.scale_factor, config.stop_scale-i)
@@ -54,18 +53,3 @@ def create_flatten_grid(h, w, device, min_v=0, max_v=1):
     return grid_x.to(device), grid_y.to(device)
 
 
-def calcul_gp(discriminator, real, fake, device):
-    alpha = torch.rand(1, 1)
-    alpha = alpha.expand(real.size())
-    alpha = alpha.to(device)
-
-    interpolated = alpha * real + ((1 - alpha) * fake)
-    interpolated = interpolated.to(device)
-    interpolated = torch.autograd.Variable(interpolated, requires_grad=True)
-    interpolated_prob_out = discriminator(interpolated)
-
-    gradients = torch.autograd.grad(outputs=interpolated_prob_out, inputs=interpolated,
-                                    grad_outputs=torch.ones(interpolated_prob_out.size()).to(device),
-                                    create_graph=True, retain_graph=True, only_inputs=True)[0]
-    gp = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
-    return gp

@@ -7,7 +7,6 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from models.fourier_feature import FFModel
 from utils.utils import create_grid
 
 EXP_NAME = 'fourier_siren_balloons'
