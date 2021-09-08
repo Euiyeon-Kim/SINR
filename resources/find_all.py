@@ -16,7 +16,7 @@ PATH = '../inputs/mountains_patch/1_9.jpg'
 PTH_NAME = 'final'
 
 MAX_ITERS = 1000000
-LR = 1e-5
+LR = 1e-4
 
 MAPPING_SIZE = 256
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     loss_fn = nn.MSELoss()
 
     for i in range(MAX_ITERS):
-        model.train()
+        model.eval()
 
         pred = model(find)
         loss = loss_fn(pred, img)
@@ -59,5 +59,3 @@ if __name__ == '__main__':
         if (i+1) % 1000 == 0:
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/find_all/img/{i}.jpg')
-
-    torch.save(B, f'exps/{EXP_NAME}/find_all/ckpt/B.pt')

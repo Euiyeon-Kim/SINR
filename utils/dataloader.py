@@ -1,5 +1,6 @@
 from glob import glob
 
+import numpy as np
 from PIL import Image
 
 from torch.utils.data import Dataset
@@ -13,17 +14,18 @@ transform = transforms.Compose([
 
 
 class Custom(Dataset):
-    def __init__(self, data_root, res, ext='jpg'):
-        self.res = res
+    def __init__(self, data_root, ext='jpg'):
         self.paths = glob(f'{data_root}/*.{ext}')
 
     def __len__(self):
         return len(self.paths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, transform=None):
         img = Image.open(self.paths[idx])
-        img = transform(img)
-        # img = np.float32(img) / 255
+        if transform:
+            img = transform(img)
+        else:
+            img = np.float32(img) / 255
         return img
 
 
