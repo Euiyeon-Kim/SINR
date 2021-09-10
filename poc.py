@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 
 import torch
+from torchvision.transforms import RandomCrop, Resize
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
@@ -17,7 +18,7 @@ PATH = 'inputs/mountains.jpg'
 
 W0 = 50
 MAX_ITERS = 1000000
-LR = 1e-5
+LR = 1e-4
 
 
 if __name__ == '__main__':
@@ -36,7 +37,13 @@ if __name__ == '__main__':
 
     model = SirenModel(coord_dim=2, num_c=3, w0=W0).to(device)
     model.load_state_dict(torch.load(PTH_PATH))
+    for param in model.parameters():
+        param.trainable = False
     model.eval()
+
+    grid = grid.permute(2, 0, 1)
+    grid = RandomCrop((128, 128))(grid)
+    grid = Resize((h, w))(grid).permute(1, 2, 0)
 
     pred = model(grid)
     pred = pred.permute(2, 0, 1)
@@ -57,7 +64,9 @@ if __name__ == '__main__':
         loss.backward()
         optim.step()
 
-        if (i+1) % 10 == 0:
+        writer.add_scalar("loss", loss.item(), i)
+
+        if (i+1) % 500 == 0:
             pred = pred.permute(2, 0, 1)
             visualize_grid(find, f'exps/{EXP_NAME}/img/{i}_{loss.item():.4f}_grid.jpg', device)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}_{loss.item():.4f}_find.jpg')
