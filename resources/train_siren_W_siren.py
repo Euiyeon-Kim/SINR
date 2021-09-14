@@ -11,12 +11,20 @@ from utils.viz import visualize_grid
 from utils.utils import create_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
-from models.adversarial import Discriminator, MappingConv
+from models.adversarial import Discriminator, MappingSIREN
 
+'''
+    Random coord -> W(Conv) -> Generated coord
+    Generated coord -> Model -> Generated image 
+    Generated image -> Crop patch -> Discriminator
 
-EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/w_upsample_conv_64'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
-PATH = 'inputs/balloons.png'
+    Result
+    W(MLP)랑 마찬가지, W가 conv라고 될 일이 아닌 듯
+'''
+
+EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/w_siren_64'
+PTH_PATH = '../exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000
@@ -50,7 +58,7 @@ if __name__ == '__main__':
         param.trainable = False
     recon = model(grid).permute(2, 0, 1)
     save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
-    mapper = MappingConv().to(device)
+    mapper = MappingSIREN(coord_dim=2, num_c=2, w0=W0).to(device)
     m_optim = torch.optim.Adam(mapper.parameters(), lr=LR, betas=(0.5, 0.999))
 
     d = Discriminator(nfc=64).to(device)
@@ -64,19 +72,16 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Train with real image
-            # real_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(img), dim=0)
-            real_patch = torch.unsqueeze(img, dim=0)
+            real_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(img), dim=0)
             real_prob_out = d(real_patch)
             d_real_loss = -real_prob_out.mean()
             d_real_loss.backward(retain_graph=True)
 
             # Train with fake image
-            noise_coord = torch.normal(mean=0, std=1.0, size=(1, 2, h//4, w//4)).to(device)
-            upsampled_coord = torch.nn.Upsample(size=(h, w), mode='bilinear', align_corners=True)(noise_coord)
-            generated_coord = torch.squeeze(mapper(upsampled_coord)).permute(1, 2, 0)
+            noise_coord = torch.normal(mean=0, std=1.0, size=(h, w, 2)).to(device)
+            generated_coord = mapper(noise_coord)
             generated = model(generated_coord).permute(2, 0, 1).detach()
-            # fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
-            fake_patch = torch.unsqueeze(generated, dim=0)
+            fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
 
             fake_prob_out = d(fake_patch)
             d_fake_loss = fake_prob_out.mean()  # Minimize D(G(z))
@@ -98,13 +103,10 @@ if __name__ == '__main__':
             mapper.train()
             m_optim.zero_grad()
 
-            noise_coord = torch.normal(mean=0, std=1.0, size=(1, 2, h//4, w//4)).to(device)
-            upsampled_coord = torch.nn.Upsample(size=(h, w), mode='bilinear', align_corners=True)(noise_coord)
-            generated_coord = torch.squeeze(mapper(upsampled_coord)).permute(1, 2, 0)
-
+            noise_coord = torch.normal(mean=0, std=1.0, size=(h, w, 2)).to(device)
+            generated_coord = mapper(noise_coord)
             generated = model(generated_coord).permute(2, 0, 1)
-            # fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
-            fake_patch = torch.unsqueeze(generated, dim=0)
+            fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
 
             fake_prob_out = d(fake_patch)
             adv_loss = -fake_prob_out.mean()
@@ -119,8 +121,8 @@ if __name__ == '__main__':
         writer.flush()
 
         # Log image
-        if iter == 0 or (iter + 1) % 100 == 0:
-            save_image(fake_patch, f'exps/{EXP_NAME}/img/{iter}_fake.jpg')
+        if (iter + 1) % 10 == 0:
+            save_image(generated, f'exps/{EXP_NAME}/img/{iter}_all.jpg')
+            save_image(fake_patch, f'exps/{EXP_NAME}/img/{iter}_patch.jpg')
             save_image(real_patch, f'exps/{EXP_NAME}/img/{iter}_real.jpg')
-            visualize_grid(torch.squeeze(upsampled_coord).permute(1, 2, 0), f'exps/{EXP_NAME}/img/{iter}_upsampled_noise.jpg', device)
-            visualize_grid(generated_coord, f'exps/{EXP_NAME}/img/{iter}_generated_coord.jpg', device, 'generated_coord_all')
+            visualize_grid(generated_coord, f'exps/{EXP_NAME}/img/{iter}_whole.jpg', device, 'generated_coord_all')

@@ -11,7 +11,7 @@ from utils.viz import visualize_grid
 from utils.utils import create_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
-from models.adversarial import Discriminator, MappingSIREN
+from models.adversarial import Discriminator, MappingConv
 
 '''
     Random coord -> W(Conv) -> Generated coord
@@ -22,9 +22,9 @@ from models.adversarial import Discriminator, MappingSIREN
     W(MLP)랑 마찬가지, W가 conv라고 될 일이 아닌 듯
 '''
 
-EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/w_siren_64'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
-PATH = 'inputs/balloons.png'
+EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/w_conv_64'
+PTH_PATH = '../exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         param.trainable = False
     recon = model(grid).permute(2, 0, 1)
     save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
-    mapper = MappingSIREN(coord_dim=2, num_c=2, w0=W0).to(device)
+    mapper = MappingConv().to(device)
     m_optim = torch.optim.Adam(mapper.parameters(), lr=LR, betas=(0.5, 0.999))
 
     d = Discriminator(nfc=64).to(device)
@@ -78,10 +78,11 @@ if __name__ == '__main__':
             d_real_loss.backward(retain_graph=True)
 
             # Train with fake image
-            noise_coord = torch.normal(mean=0, std=1.0, size=(h, w, 2)).to(device)
-            generated_coord = mapper(noise_coord)
+            noise_coord = torch.normal(mean=0, std=1.0, size=(1, 2, h, w)).to(device)
+            generated_coord = torch.squeeze(mapper(noise_coord)).permute(1, 2, 0)
             generated = model(generated_coord).permute(2, 0, 1).detach()
             fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
+            # fake_patch = torch.unsqueeze(generated, dim=0)
 
             fake_prob_out = d(fake_patch)
             d_fake_loss = fake_prob_out.mean()  # Minimize D(G(z))
@@ -103,8 +104,8 @@ if __name__ == '__main__':
             mapper.train()
             m_optim.zero_grad()
 
-            noise_coord = torch.normal(mean=0, std=1.0, size=(h, w, 2)).to(device)
-            generated_coord = mapper(noise_coord)
+            noise_coord = torch.normal(mean=0, std=1.0, size=(1, 2, h, w)).to(device)
+            generated_coord = torch.squeeze(mapper(noise_coord)).permute(1, 2, 0)
             generated = model(generated_coord).permute(2, 0, 1)
             fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated), dim=0)
 

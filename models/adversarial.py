@@ -1,6 +1,7 @@
 from torch import nn
 from models.siren import SirenLayer
 
+
 class MappingNet(nn.Module):
     def __init__(self, in_f, out_f, hidden_node=256, depth=5):
         super(MappingNet, self).__init__()
@@ -12,7 +13,7 @@ class MappingNet(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        return nn.Sigmoid()(self.layers(x))
+        return nn.Tanh()(self.layers(x))
 
 
 class MappingConv(nn.Module):
