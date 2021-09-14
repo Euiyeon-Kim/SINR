@@ -1,5 +1,5 @@
 from torch import nn
-
+from models.siren import SirenLayer
 
 class MappingNet(nn.Module):
     def __init__(self, in_f, out_f, hidden_node=256, depth=5):
@@ -34,7 +34,22 @@ class MappingConv(nn.Module):
         x = self.head(x)
         x = self.body(x)
         x = self.tail(x)
-        return nn.Sigmoid()(x)
+        return x
+
+
+class MappingSIREN(nn.Module):
+    def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5):
+        super(MappingSIREN, self).__init__()
+        layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
+        for _ in range(1, depth - 1):
+            layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
+        layers.append(SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True))
+        # layers.append(nn.Sigmoid())
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, coords):
+        x = self.layers(coords)
+        return x
 
 
 class FMappingConv(nn.Module):
