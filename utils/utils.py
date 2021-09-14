@@ -62,5 +62,3 @@ def shuffle_grid(h, w, device, min_v=0, max_v=1):
     new_grid[:, w // 2:, :] = np_grid[:, :w // 2, :]
     np2torch = torch.FloatTensor(new_grid).to(device)
     return np2torch
-
-

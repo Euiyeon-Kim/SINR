@@ -7,13 +7,14 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from models.adversarial import MappingConv
+from utils.viz import visualize_grid
 
-EXP_NAME = 'balloons'
-PATH = './inputs/balloons.png'
+EXP_NAME = 'SIREN(MappingConv(z))'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
-MAX_ITERS = 2000
+MAX_ITERS = 100000
 LR = 1e-4
 
 
@@ -29,18 +30,21 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     img = torch.FloatTensor(img).to(device)
-    grid = create_grid(h, w, device=device)
-    in_f = grid.shape[-1]
 
-    model = SirenModel(coord_dim=in_f, num_c=c, w0=W0).to(device)
-    optim = torch.optim.Adam(model.parameters(), lr=LR)
+    mapper = MappingConv().to(device)
+    model = SirenModel(coord_dim=2, num_c=3).to(device)
+    optim = torch.optim.Adam(list(model.parameters()) + list(mapper.parameters()), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
     for i in range(MAX_ITERS):
         model.train()
         optim.zero_grad()
 
-        pred = model(grid)
+        noise_coord = torch.normal(mean=0, std=1.0, size=(1, 2, h // 4, w // 4)).to(device)
+        upsampled_coord = torch.nn.Upsample(size=(h, w), mode='bilinear', align_corners=True)(noise_coord)
+        generated_coord = torch.squeeze(mapper(upsampled_coord)).permute(1, 2, 0)
+
+        pred = model(generated_coord)
         loss = loss_fn(pred, img)
 
         loss.backward()
@@ -48,9 +52,10 @@ if __name__ == '__main__':
 
         writer.add_scalar("loss", loss.item(), i)
 
-        if (i+1) % 50 == 0:
+        if i == 0 or (i+1) % 100 == 0:
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')
-
+            visualize_grid(torch.squeeze(noise_coord).permute(1, 2, 0), f'exps/{EXP_NAME}/img/{i}_noise.jpg', device)
+            visualize_grid(generated_coord, f'exps/{EXP_NAME}/img/{i}_grid.jpg', device)
 
     torch.save(model.state_dict(), f'exps/{EXP_NAME}/ckpt/final.pth')

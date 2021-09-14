@@ -17,7 +17,7 @@ class MappingNet(nn.Module):
 
 
 class MappingConv(nn.Module):
-    def __init__(self, in_c=2, nfc=32, min_nfc=32, num_layers=5):
+    def __init__(self, in_c=2, out_c=3, nfc=32, min_nfc=32, num_layers=5):
         super(MappingConv, self).__init__()
 
         N = nfc
@@ -29,7 +29,7 @@ class MappingConv(nn.Module):
             block = ConvBlock(max(2 * N, min_nfc), max(N, min_nfc), 3, 1, 1)
             self.body.add_module('block%d' % (i + 1), block)
 
-        self.tail = nn.Conv2d(max(N, min_nfc), in_c, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        self.tail = nn.Conv2d(max(N, min_nfc), out_c, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
 
     def forward(self, x):
         x = self.head(x)
