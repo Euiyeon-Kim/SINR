@@ -21,8 +21,8 @@ from utils.viz import visualize_grid
 
 
 EXP_NAME = 'learnit_mountains_patch/poc'
-PTH_PATH = '../exps/learnit_mountains_patch/maml/ckpt/final.pth'
-PATH = '../inputs/mountains.jpg'
+PTH_PATH = 'exps/learnit_mountains_patch/maml/ckpt/final.pth'
+PATH = 'inputs/mountains.jpg'
 
 W0 = 50
 MAX_ITERS = 1000000
