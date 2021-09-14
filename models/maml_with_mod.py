@@ -47,7 +47,7 @@ class Modulator(nn.Module):
     def __init__(self, in_f, hidden_node=256, depth=5):
         super(Modulator, self).__init__()
         layers = [ModulationLayer(in_f=in_f, out_f=hidden_node)]
-        for i in range(depth - 1):
+        for i in range(depth):
             layers.append(ModulationLayer(in_f=hidden_node+in_f, out_f=hidden_node))
         self.layers = nn.Sequential(*layers)
 
@@ -92,7 +92,7 @@ class ModulatedSirenModel(nn.Module):
     def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5, latent_dim=256):
         super(ModulatedSirenModel, self).__init__()
         self.depth = 5
-        self.modulator = Modulator(in_f=latent_dim, depth=depth-1)
+        self.modulator = Modulator(in_f=latent_dim, hidden_node=hidden_node, depth=depth-1)
         layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
         for _ in range(1, depth - 1):
             layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))

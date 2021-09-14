@@ -16,13 +16,14 @@ EXP_NAME = 'balloons/learnit_var_patch_with_mod'
 PATH = './inputs/balloons.png'
 
 W0 = 50
-PATCH_SIZE = 8
+PATCH_SIZE = 16
 
 BATCH_SIZE = 1
 INNER_STEPS = 2
 MAX_ITERS = 20000
 
-LATENT_DIM = 64
+HIDDEN_NODE = 256
+LATENT_DIM = 256
 OUTER_LR = 1e-5
 INNER_LR = 1e-2
 
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     img = torch.unsqueeze(torch.FloatTensor(img).permute(2, 0, 1).to(device), dim=0)
     grid = create_grid(PATCH_SIZE, PATCH_SIZE, device=device)
 
-    maml = MAML(coord_dim=2, num_c=3, w0=W0, latent_dim=LATENT_DIM).to(device)
+    maml = MAML(coord_dim=2, num_c=3, w0=W0, hidden_node=8, latent_dim=LATENT_DIM).to(device)
     outer_optimizer = torch.optim.Adam(maml.parameters(), lr=OUTER_LR)
     loss_fn = torch.nn.MSELoss()
 
@@ -52,8 +53,6 @@ if __name__ == '__main__':
         z = torch.normal(mean=0.0, std=1.0, size=(BATCH_SIZE, LATENT_DIM)).to(device)
 
         pred = maml(z, grid, data, True)
-        print(pred.shape)
-        exit()
 
         loss = loss_fn(pred, data)
         print(f'{outer_step}/{MAX_ITERS}: {loss.item()}')
