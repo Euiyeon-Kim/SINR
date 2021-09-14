@@ -113,11 +113,13 @@ class ModulatedSirenModel(nn.Module):
 
 
 class MAML(nn.Module):
-    def __init__(self, coord_dim, num_c, inner_steps=3, inner_lr=1e-2, w0=200, hidden_node=256, depth=5, latent_dim=256):
+    def __init__(self, coord_dim, num_c, device, inner_steps=3, inner_lr=1e-2,
+                 w0=200, hidden_node=256, depth=5, latent_dim=256):
         super().__init__()
         self.latent_dim = hidden_node
         self.inner_steps = inner_steps
         self.inner_lr = inner_lr
+        self.device = device
         self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth, latent_dim)
 
     def _inner_iter(self, z, coords, img, params, detach):
@@ -158,8 +160,8 @@ class MAML(nn.Module):
 
             with torch.set_grad_enabled(meta_train):
                 self.eval()
-                z = torch.normal(mean=0.0, std=1.0, size=(1, self.latent_dim)).cuda()
-                pred = self.model(z, coords, updated_params)
+                z = torch.normal(mean=0.0, std=1.0, size=(1, self.latent_dim)).to(self.device)
+                pred = self.model(latents=z, coords=coords, params=updated_params)
             preds.append(pred)
 
         self.train(meta_train)
