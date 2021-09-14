@@ -15,8 +15,8 @@ from utils.viz import visualize_grid
 
 
 EXP_NAME = 'balloons/conv_reverser'
-PTH_PATH = 'exps/balloons/ckpt/final.pth'
-PATH = 'inputs/balloons.png'
+PTH_PATH = '../exps/balloons/ckpt/final.pth'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000

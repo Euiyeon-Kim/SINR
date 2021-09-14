@@ -16,8 +16,8 @@ from models.adversarial import Discriminator
 
 
 EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/patchify_shuffle_coord_64'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
-PATH = 'inputs/balloons.png'
+PTH_PATH = '../exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000

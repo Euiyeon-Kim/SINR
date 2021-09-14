@@ -1,11 +1,16 @@
 from collections import OrderedDict
 
 import numpy as np
+from einops import rearrange
 
 import torch
 import torch.nn as nn
 import torch.autograd as autograd
 from torch.nn import functional as F
+
+
+def cast_tuple(val, repeat=1):
+    return val if isinstance(val, tuple) else ((val,) * repeat)
 
 
 class Linear(nn.Linear):
@@ -23,6 +28,40 @@ class Linear(nn.Linear):
                 bias = self.bias
             x = F.linear(x, weight, bias)
         return x
+
+
+class ModulationLayer(nn.Module):
+    def __init__(self, in_f, out_f, is_last=False):
+        super(ModulationLayer, self).__init__()
+        self.in_f = in_f
+        self.out_f = out_f
+        self.linear = Linear(in_f, out_f)
+        self.is_last = is_last
+
+    def forward(self, x, params=None):
+        x = self.linear(x, params)
+        return x if self.is_last else torch.relu(x)
+
+
+class Modulator(nn.Module):
+    def __init__(self, in_f, hidden_node=256, depth=5):
+        super(Modulator, self).__init__()
+        layers = [ModulationLayer(in_f=in_f, out_f=hidden_node)]
+        for i in range(depth - 1):
+            layers.append(ModulationLayer(in_f=hidden_node+in_f, out_f=hidden_node))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, z, params=None):
+        x = z
+        hiddens = []
+        for idx, layer in enumerate(self.layers):
+            layer_param = OrderedDict()
+            layer_param['weight'] = params.get(f'modulator.layers.{idx}.linear.weight')
+            layer_param['bias'] = params.get(f'modulator.layers.{idx}.linear.bias')
+            x = layer(x, layer_param)
+            hiddens.append(x)
+            x = torch.cat((x, z))
+        return tuple(hiddens)
 
 
 class SirenLayer(nn.Module):
@@ -49,39 +88,43 @@ class SirenLayer(nn.Module):
         return x if self.is_last else torch.sin(self.w0 * x)
 
 
-class SirenModel(nn.Module):
-    def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5):
-        super().__init__()
+class ModulatedSirenModel(nn.Module):
+    def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5, latent_dim=256):
+        super(ModulatedSirenModel, self).__init__()
+        self.depth = 5
+        self.modulator = Modulator(in_f=latent_dim, depth=depth-1)
+
         layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
         for _ in range(1, depth - 1):
             layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
-        layers.append(SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True))
         self.layers = nn.Sequential(*layers)
+        self.last_layer = SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True)
 
-    def forward(self, coords, params=None):
-        if params is None:
-            x = self.layers(coords)
-        else:
-            x = coords
-            for idx, layer in enumerate(self.layers):
-                layer_param = OrderedDict()
-                layer_param['weight'] = params.get(f'layers.{idx}.linear.weight')
-                layer_param['bias'] = params.get(f'layers.{idx}.linear.bias')
-                x = layer(x, layer_param)
-        return x
+    def forward(self, latents, coords, params):
+        x = coords
+        mods = self.modulator(latents, params)
+        mods = cast_tuple(mods, self.depth)
+        for idx, (layer, mod) in enumerate(zip(self.layers, mods)):
+            layer_param = OrderedDict()
+            layer_param['weight'] = params.get(f'layers.{idx}.linear.weight')
+            layer_param['bias'] = params.get(f'layers.{idx}.linear.bias')
+            x = layer(x, layer_param)
+            x *= rearrange(mod, 'd -> () d')
+        return self.last_layer(x)
 
 
 class MAML(nn.Module):
     def __init__(self, coord_dim, num_c, inner_steps=3, inner_lr=1e-2, w0=200, hidden_node=256, depth=5):
         super().__init__()
+        self.latent_dim = hidden_node
         self.inner_steps = inner_steps
         self.inner_lr = inner_lr
-        self.model = SirenModel(coord_dim, num_c, w0, hidden_node, depth)
+        self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth)
 
-    def _inner_iter(self, coords, img, params, detach):
+    def _inner_iter(self, z, coords, img, params, detach):
         with torch.enable_grad():
             # forward pass
-            pred = self.model(coords, params)
+            pred = self.model(z, coords, params)
             loss = F.mse_loss(pred, img)
 
             # backward pass
@@ -99,12 +142,12 @@ class MAML(nn.Module):
                 updated_params[name] = updated_param
         return updated_params
 
-    def _adapt(self, coords, img, params, meta_train):
+    def _adapt(self, z, coords, img, params, meta_train):
         for step in range(self.inner_steps):
-            params = self._inner_iter(coords, img, params, not meta_train)
+            params = self._inner_iter(z, coords, img, params, not meta_train)
         return params
 
-    def forward(self, coords, data, meta_train):
+    def forward(self, z, coords, data, meta_train):
         # a dictionary of parameters that will be updated in the inner loop
         params = OrderedDict(self.model.named_parameters())
 
@@ -112,11 +155,12 @@ class MAML(nn.Module):
         for ep in range(data.size(0)):
             # inner-loop training
             self.train()
-            updated_params = self._adapt(coords, data[ep], params, meta_train)
+            updated_params = self._adapt(z[ep], coords, data[ep], params, meta_train)
 
             with torch.set_grad_enabled(meta_train):
                 self.eval()
-                pred = self.model(coords, updated_params)
+                z = torch.normal(mean=0.0, std=1.0, size=(1, self.latent_dim)).cuda()
+                pred = self.model(z, coords, updated_params)
             preds.append(pred)
 
         self.train(meta_train)
