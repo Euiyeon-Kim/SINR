@@ -93,7 +93,6 @@ class ModulatedSirenModel(nn.Module):
         super(ModulatedSirenModel, self).__init__()
         self.depth = 5
         self.modulator = Modulator(in_f=latent_dim, depth=depth-1)
-
         layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
         for _ in range(1, depth - 1):
             layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
@@ -114,12 +113,12 @@ class ModulatedSirenModel(nn.Module):
 
 
 class MAML(nn.Module):
-    def __init__(self, coord_dim, num_c, inner_steps=3, inner_lr=1e-2, w0=200, hidden_node=256, depth=5):
+    def __init__(self, coord_dim, num_c, inner_steps=3, inner_lr=1e-2, w0=200, hidden_node=256, depth=5, latent_dim=256):
         super().__init__()
         self.latent_dim = hidden_node
         self.inner_steps = inner_steps
         self.inner_lr = inner_lr
-        self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth)
+        self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth, latent_dim)
 
     def _inner_iter(self, z, coords, img, params, detach):
         with torch.enable_grad():
