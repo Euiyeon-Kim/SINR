@@ -22,10 +22,11 @@ from models.adversarial import Discriminator, MappingConv
     W(MLP)랑 마찬가지, W가 conv라고 될 일이 아닌 듯
 '''
 
-EXP_NAME = 'conv_coord_w_stone_32_fixed'
-PATH = '../inputs/stone.png'
-PTH_PATH = '../exps/stone/ckpt/final.pth'
+EXP_NAME = 'balloons/learnit_var_patch_64/conv_w_32'
+PATH = './inputs/balloons.png'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
 
+W0 = 50
 MAX_ITERS = 1000000
 LR = 1e-4
 
@@ -36,10 +37,10 @@ GP_LAMBDA = 10
 
 
 if __name__ == '__main__':
-    os.makedirs(f'exps/{EXP_NAME}/w/img', exist_ok=True)
-    os.makedirs(f'exps/{EXP_NAME}/w/ckpt', exist_ok=True)
-    os.makedirs(f'exps/{EXP_NAME}/w/logs', exist_ok=True)
-    writer = SummaryWriter(f'exps/{EXP_NAME}/w/logs')
+    os.makedirs(f'exps/{EXP_NAME}/img', exist_ok=True)
+    os.makedirs(f'exps/{EXP_NAME}/ckpt', exist_ok=True)
+    os.makedirs(f'exps/{EXP_NAME}/logs', exist_ok=True)
+    writer = SummaryWriter(f'exps/{EXP_NAME}/logs')
 
     img = Image.open(PATH).convert('RGB')
     img = np.array(img) / 255.
@@ -48,17 +49,17 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     img = torch.FloatTensor(img).permute(2, 0, 1).to(device)
     grid = create_grid(h, w, device=device)
-    visualize_grid(grid, f'exps/{EXP_NAME}/w/base_grid.jpg', device)
+    visualize_grid(grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
     origin_grid = grid.permute(2, 0, 1)
 
-    model = SirenModel(coord_dim=2, num_c=3).to(device)
+    model = SirenModel(coord_dim=2, num_c=3, w0=W0).to(device)
     model.load_state_dict(torch.load(PTH_PATH))
     for param in model.parameters():
         param.requires_grad = False
     recon = model(grid).permute(2, 0, 1)
     save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
 
-    mapper = MappingConv().to(device)
+    mapper = MappingConv(in_c=2, out_c=2).to(device)
     m_optim = torch.optim.Adam(mapper.parameters(), lr=LR, betas=(0.5, 0.999))
 
     d = Discriminator(in_c=2, nfc=64).to(device)
@@ -117,9 +118,12 @@ if __name__ == '__main__':
         writer.flush()
 
         # Log image
-        if (iter + 1) % 100 == 0:
+        if iter == 0 or (iter + 1) % 500 == 0:
             generated = model(generated_coord.permute(1, 2, 0)).permute(2, 0, 1).detach()
-            save_image(generated, f'exps/{EXP_NAME}/w/img/{iter}_all.jpg')
-            visualize_grid(generated_coord.permute(1, 2, 0), f'exps/{EXP_NAME}/w/img/{iter}_whole.jpg', device, 'generated_coord_all')
-            visualize_grid(fake_patch[0].permute(1, 2, 0), f'exps/{EXP_NAME}/w/img/{iter}_fake_grid.jpg', device, 'fake_patch')
-            visualize_grid(real_patch[0].permute(1, 2, 0), f'exps/{EXP_NAME}/w/img/{iter}_real_grid.jpg', device, 'real_patch')
+            save_image(generated, f'exps/{EXP_NAME}/img/{iter}_all.jpg')
+            visualize_grid(generated_coord.permute(1, 2, 0), f'exps/{EXP_NAME}/img/{iter}_whole.jpg', device)
+            visualize_grid(fake_patch[0].permute(1, 2, 0), f'exps/{EXP_NAME}/img/{iter}_fake_grid.jpg', device)
+            visualize_grid(real_patch[0].permute(1, 2, 0), f'exps/{EXP_NAME}/img/{iter}_real_grid.jpg', device)
+
+    torch.save(mapper.state_dict(), f'exps/{EXP_NAME}/ckpt/mapper.pth')
+    torch.save(d.state_dict(), f'exps/{EXP_NAME}/ckpt/D.pth')

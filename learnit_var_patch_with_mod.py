@@ -12,18 +12,18 @@ from models.maml_with_mod import MAML
 from utils.utils import create_grid
 
 
-EXP_NAME = 'balloons/learnit_var_patch_with_mod'
+EXP_NAME = 'balloons/learnit_var_patch_with_mod_64'
 PATH = './inputs/balloons.png'
 
 W0 = 50
-PATCH_SIZE = 32
+PATCH_SIZE = 64
 
 BATCH_SIZE = 1
 INNER_STEPS = 2
 MAX_ITERS = 20000
 
 HIDDEN_NODE = 256
-LATENT_DIM = 64
+LATENT_DIM = 16
 OUTER_LR = 1e-5
 INNER_LR = 1e-2
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
             data = data[0].permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_pred.jpg')
             save_image(data, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_data.jpg')
-            z = torch.zeros(size=(1, LATENT_DIM)).to(device)
+            z = torch.normal(mean=0.0, std=1.0, size=(1, LATENT_DIM)).to(device)
             meta = maml.model(z[0], grid).permute(2, 0, 1)
             save_image(meta, f'exps/{EXP_NAME}/img/{outer_step}_meta.jpg')
 

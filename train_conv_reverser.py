@@ -14,9 +14,9 @@ from utils.utils import create_grid
 from utils.viz import visualize_grid
 
 
-EXP_NAME = 'balloons/conv_reverser'
-PTH_PATH = '../exps/balloons/ckpt/final.pth'
-PATH = '../inputs/balloons.png'
+EXP_NAME = 'balloons/learnit_var_patch_64/conv_reverser'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = 'inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000
