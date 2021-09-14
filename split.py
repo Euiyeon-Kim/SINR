@@ -4,14 +4,14 @@ import numpy as np
 from PIL import Image
 
 
-NAME = 'mountains'
-PATH = f'./inputs/{NAME}.jpg'
+NAME = 'balloons'
+PATH = f'./inputs/{NAME}.png'
 PATCH_SIZE = 32
 OVERLAP = 16
 
 
 if __name__ == '__main__':
-    os.makedirs(f'./inputs/{NAME}_patch', exist_ok=True)
+    os.makedirs(f'./inputs/{NAME}_patch_{PATCH_SIZE}', exist_ok=True)
     img = Image.open(PATH).convert('RGB')
     w, h = img.size
     cut_h, cut_w = (h - PATCH_SIZE) % (PATCH_SIZE - OVERLAP), (w - PATCH_SIZE) % (PATCH_SIZE - OVERLAP)
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     for i in range(num_h):
         for j in range(num_w):
             patch = new_img[h_offset:h_offset+PATCH_SIZE, w_offset:w_offset+PATCH_SIZE, :]
-            Image.fromarray(patch).save(f'./inputs/{NAME}_patch/{i}_{j}.jpg')
+            Image.fromarray(patch).save(f'./inputs/{NAME}_patch_{PATCH_SIZE}/{i}_{j}.jpg')
             w_offset += PATCH_SIZE - OVERLAP
         w_offset = 0
         h_offset += PATCH_SIZE - OVERLAP

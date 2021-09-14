@@ -10,8 +10,8 @@ from utils.dataloader import Custom
 from utils.utils import create_grid
 
 
-EXP_NAME = 'tmp'
-DATA_ROOT = 'inputs/mountains_patch'
+EXP_NAME = 'balloon/learnit_fixed_32'
+DATA_ROOT = 'inputs/ballons_patch_32'
 
 W0 = 50
 PATCH_SIZE = 32
