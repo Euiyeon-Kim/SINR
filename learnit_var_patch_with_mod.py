@@ -69,7 +69,8 @@ if __name__ == '__main__':
             data = data[0].permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_pred.jpg')
             save_image(data, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_data.jpg')
-            meta = maml.model(grid).permute(2, 0, 1)
+            z = torch.zeros(size=(1, LATENT_DIM)).to(device)
+            meta = maml.model(z[0], grid).permute(2, 0, 1)
             save_image(meta, f'exps/{EXP_NAME}/img/{outer_step}_meta.jpg')
 
         if (outer_step + 1) % 1000 == 0:

@@ -54,13 +54,19 @@ class Modulator(nn.Module):
     def forward(self, z, params=None):
         x = z
         hiddens = []
-        for idx, layer in enumerate(self.layers):
-            layer_param = OrderedDict()
-            layer_param['weight'] = params.get(f'modulator.layers.{idx}.linear.weight')
-            layer_param['bias'] = params.get(f'modulator.layers.{idx}.linear.bias')
-            x = layer(x, layer_param)
-            hiddens.append(x)
-            x = torch.cat((x, z))
+        if params is None:
+            for idx, layer in enumerate(self.layers):
+                x = layer(x)
+                hiddens.append(x)
+                x = torch.cat((x, z))
+        else:
+            for idx, layer in enumerate(self.layers):
+                layer_param = OrderedDict()
+                layer_param['weight'] = params.get(f'modulator.layers.{idx}.linear.weight')
+                layer_param['bias'] = params.get(f'modulator.layers.{idx}.linear.bias')
+                x = layer(x, layer_param)
+                hiddens.append(x)
+                x = torch.cat((x, z))
         return tuple(hiddens)
 
 
@@ -99,17 +105,28 @@ class ModulatedSirenModel(nn.Module):
         self.layers = nn.Sequential(*layers)
         self.last_layer = SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True)
 
-    def forward(self, latents, coords, params):
+    def forward(self, latents, coords, params=None):
         x = coords
         mods = self.modulator(latents, params)
         mods = cast_tuple(mods, self.depth)
-        for idx, (layer, mod) in enumerate(zip(self.layers, mods)):
+
+        if params is None:
+            for idx, (layer, mod) in enumerate(zip(self.layers, mods)):
+                x = layer(x)
+                x *= rearrange(mod, 'd -> () d')
+            x = self.last_layer(x)
+        else:
+            for idx, (layer, mod) in enumerate(zip(self.layers, mods)):
+                layer_param = OrderedDict()
+                layer_param['weight'] = params.get(f'layers.{idx}.linear.weight')
+                layer_param['bias'] = params.get(f'layers.{idx}.linear.bias')
+                x = layer(x, layer_param)
+                x *= rearrange(mod, 'd -> () d')
             layer_param = OrderedDict()
-            layer_param['weight'] = params.get(f'layers.{idx}.linear.weight')
-            layer_param['bias'] = params.get(f'layers.{idx}.linear.bias')
-            x = layer(x, layer_param)
-            x *= rearrange(mod, 'd -> () d')
-        return self.last_layer(x)
+            layer_param['weight'] = params.get(f'last_layer.linear.weight')
+            layer_param['bias'] = params.get(f'last_layer.linear.bias')
+            x = self.last_layer(x, layer_param)
+        return x
 
 
 class MAML(nn.Module):
@@ -161,7 +178,7 @@ class MAML(nn.Module):
             with torch.set_grad_enabled(meta_train):
                 self.eval()
                 z = torch.normal(mean=0.0, std=1.0, size=(1, self.latent_dim)).to(self.device)
-                pred = self.model(latents=z, coords=coords, params=updated_params)
+                pred = self.model(latents=z[0], coords=coords, params=updated_params)
             preds.append(pred)
 
         self.train(meta_train)
