@@ -40,7 +40,8 @@ if __name__ == '__main__':
     img = torch.unsqueeze(torch.FloatTensor(img).permute(2, 0, 1).to(device), dim=0)
     grid = create_grid(PATCH_SIZE, PATCH_SIZE, device=device)
 
-    maml = MAML(coord_dim=2, num_c=3, w0=W0, hidden_node=HIDDEN_NODE, latent_dim=LATENT_DIM, device=device).to(device)
+    maml = MAML(coord_dim=2, num_c=3, w0=W0, inner_steps=INNER_STEPS, inner_lr=INNER_LR,
+                hidden_node=HIDDEN_NODE, latent_dim=LATENT_DIM, device=device).to(device)
     outer_optimizer = torch.optim.Adam(maml.parameters(), lr=OUTER_LR)
     loss_fn = torch.nn.MSELoss()
 

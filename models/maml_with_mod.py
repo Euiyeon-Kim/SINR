@@ -120,7 +120,7 @@ class MAML(nn.Module):
         self.inner_steps = inner_steps
         self.inner_lr = inner_lr
         self.device = device
-        self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth, latent_dim)
+        self.model = ModulatedSirenModel(coord_dim, num_c, w0, hidden_node, depth, latent_dim=latent_dim)
 
     def _inner_iter(self, z, coords, img, params, detach):
         with torch.enable_grad():
