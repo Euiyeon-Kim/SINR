@@ -10,7 +10,7 @@ from utils.dataloader import Custom
 from utils.utils import create_grid
 
 
-EXP_NAME = 'learnit_mountains_patch'
+EXP_NAME = 'tmp'
 DATA_ROOT = 'inputs/mountains_patch'
 
 W0 = 50
@@ -62,7 +62,7 @@ if __name__ == '__main__':
             writer.add_scalar("loss", loss.item(), outer_step)
             outer_step += 1
 
-            if outer_step % 100 == 0:
+            if (outer_step + 1) % 100 == 0:
                 pred = pred[0].permute(2, 0, 1)
                 data = data[0].permute(2, 0, 1)
                 save_image(pred, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_pred.jpg')
@@ -70,6 +70,6 @@ if __name__ == '__main__':
                 meta = maml.model(grid).permute(2, 0, 1)
                 save_image(meta, f'exps/{EXP_NAME}/img/{outer_step}_meta.jpg')
 
-            if outer_step % 1000 == 0:
+            if (outer_step + 1) % 1000 == 0:
                 torch.save(maml.model.state_dict(), f'exps/{EXP_NAME}/ckpt/{outer_step}.pth')
 

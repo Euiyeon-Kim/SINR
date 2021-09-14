@@ -12,9 +12,17 @@ from models.maml import SirenModel
 from utils.utils import create_grid
 from utils.viz import visualize_grid
 
+'''
+    Patch에 대한 learnit 후 전체 이미지에 대한 INR을 학습했을 때
+    MSE loss로 좌표가 찾아지는지를 test
+    --> 초기값으로 주는 좌표가 만드는 이미지 픽셀 값이 중요함
+    --> 초기값으로 주는 좌표에서 크게 달라지지 않음
+'''
+
+
 EXP_NAME = 'learnit_mountains_patch/poc'
-PTH_PATH = 'exps/learnit_mountains_patch/maml/ckpt/final.pth'
-PATH = 'inputs/mountains.jpg'
+PTH_PATH = '../exps/learnit_mountains_patch/maml/ckpt/final.pth'
+PATH = '../inputs/mountains.jpg'
 
 W0 = 50
 MAX_ITERS = 1000000
