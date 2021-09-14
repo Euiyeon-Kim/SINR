@@ -16,13 +16,13 @@ EXP_NAME = 'balloons/learnit_var_patch_with_mod'
 PATH = './inputs/balloons.png'
 
 W0 = 50
-PATCH_SIZE = 8
+PATCH_SIZE = 32
 
 BATCH_SIZE = 1
 INNER_STEPS = 2
 MAX_ITERS = 20000
 
-HIDDEN_NODE = 64
+HIDDEN_NODE = 256
 LATENT_DIM = 64
 OUTER_LR = 1e-5
 INNER_LR = 1e-2

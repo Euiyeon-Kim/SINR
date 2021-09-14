@@ -133,7 +133,7 @@ class MAML(nn.Module):
     def __init__(self, coord_dim, num_c, device, inner_steps=3, inner_lr=1e-2,
                  w0=200, hidden_node=256, depth=5, latent_dim=256):
         super().__init__()
-        self.latent_dim = hidden_node
+        self.latent_dim = latent_dim
         self.inner_steps = inner_steps
         self.inner_lr = inner_lr
         self.device = device
