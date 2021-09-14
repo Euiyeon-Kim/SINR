@@ -8,22 +8,21 @@ from torchvision.transforms import RandomCrop
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.utils import create_grid
+from utils.utils import shuffle_grid
 from utils.viz import visualize_grid
 from utils.loss import calcul_gp
 from models.maml import SirenModel
 from models.adversarial import Discriminator
 
 
-EXP_NAME = 'balloons/learnit_var_patch_64/gan_without_INR_32'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
+EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/patchify_shuffle_coord_64'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
 PATH = 'inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000
 LR = 1e-4
 
-D_PATCH_SIZE = 32
 N_CRITIC = 5
 GEN_ITER = 3
 GP_LAMBDA = 10
@@ -40,8 +39,9 @@ if __name__ == '__main__':
     h, w, _ = img.shape
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    img = torch.FloatTensor(img).permute(2, 0, 1).to(device)
-    grid = create_grid(h, w, device=device)
+    img = torch.unsqueeze(torch.FloatTensor(img).permute(2, 0, 1).to(device), dim=0)
+    origin_grid = shuffle_grid(h, w, device=device)
+    grid = shuffle_grid(h, w, device=device)
 
     model = SirenModel(coord_dim=2, num_c=3, w0=W0).to(device)
     model.load_state_dict(torch.load(PTH_PATH))
@@ -49,9 +49,9 @@ if __name__ == '__main__':
         param.trainable = False
     model.eval()
 
-    pred = model(grid)
-    pred = pred.permute(2, 0, 1)
-    save_image(pred, f'exps/{EXP_NAME}/recon.jpg')
+    recon = model(grid)
+    recon = recon.permute(2, 0, 1)
+    save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
     visualize_grid(grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
 
     find = grid.to(device).detach().requires_grad_(True)
@@ -67,20 +67,17 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Train with real image
-            real_patch = torch.unsqueeze(RandomCrop(size=D_PATCH_SIZE)(img), dim=0)
-            real_prob_out = d(real_patch)
+            real_prob_out = d(img)
             d_real_loss = -real_prob_out.mean()
             d_real_loss.backward(retain_graph=True)
 
             # Train with fake image
-            pred = model(find).permute(2, 0, 1)
-            fake_patch = torch.unsqueeze(RandomCrop(size=D_PATCH_SIZE)(pred), dim=0)
-
-            fake_prob_out = d(fake_patch)
+            pred = torch.unsqueeze(model(find).permute(2, 0, 1), dim=0)
+            fake_prob_out = d(pred)
             d_fake_loss = fake_prob_out.mean()  # Minimize D(G(z))
             d_fake_loss.backward(retain_graph=True)
 
-            gradient_penalty = calcul_gp(d, real_patch, fake_patch, device) * GP_LAMBDA
+            gradient_penalty = calcul_gp(d, img, pred, device) * GP_LAMBDA
             gradient_penalty.backward()
 
             d_optim.step()
@@ -95,10 +92,8 @@ if __name__ == '__main__':
         for i in range(GEN_ITER):
             optim.zero_grad()
 
-            pred = model(find).permute(2, 0, 1)
-            fake_patch = torch.unsqueeze(RandomCrop(size=D_PATCH_SIZE)(pred), dim=0)
-
-            fake_prob_out = d(fake_patch)
+            pred = torch.unsqueeze(model(find).permute(2, 0, 1), dim=0)
+            fake_prob_out = d(pred)
             adv_loss = -fake_prob_out.mean()
 
             g_loss = adv_loss
@@ -112,6 +107,7 @@ if __name__ == '__main__':
 
         # Log image
         if (iter + 1) % 10 == 0:
-            save_image(fake_patch, f'exps/{EXP_NAME}/img/{iter}_patch.jpg')
-            save_image(real_patch, f'exps/{EXP_NAME}/img/{iter}_real.jpg')
+            save_image(torch.abs(recon-pred), f'exps/{EXP_NAME}/img/{iter}_{torch.mean(torch.abs(recon-pred)):.4f}.jpg')
+            save_image(pred, f'exps/{EXP_NAME}/img/{iter}_generated_img.jpg')
             visualize_grid(find, f'exps/{EXP_NAME}/img/{iter}_found.jpg', device)
+            visualize_grid(find-origin_grid, f'exps/{EXP_NAME}/img/{iter}_diff_{torch.mean(torch.abs(find-origin_grid)):.4f}.jpg', device)

@@ -10,12 +10,13 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.utils import create_grid
 from models.maml import SirenModel
 
-EXP_NAME = 'learnit_mountains_patch/maml'
-PTH_PATH = 'exps/learnit_mountains_patch/ckpt/20000.pth'
-PATH = 'inputs/mountains.jpg'
+EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
+PATH = 'inputs/balloons.png'
+
 
 W0 = 50
-TEST_RANGE = 200
+TEST_RANGE = 500
 LR = 1e-2
 
 

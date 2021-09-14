@@ -1,6 +1,7 @@
 import math
 
 import torch
+import numpy as np
 
 from utils.image import resize_img
 
@@ -51,5 +52,15 @@ def create_flatten_grid(h, w, device, min_v=0, max_v=1):
     grid_y = torch.unsqueeze(grid_y.flatten(), dim=0)
     grid_x = torch.unsqueeze(grid_x.flatten(), dim=0)
     return grid_x.to(device), grid_y.to(device)
+
+
+def shuffle_grid(h, w, device, min_v=0, max_v=1):
+    np_y, np_x = np.meshgrid(np.linspace(start=min_v, stop=max_v, num=w), np.linspace(start=min_v, stop=max_v, num=h))
+    np_grid = np.stack([np_x, np_y], axis=-1)
+    new_grid = np.zeros_like(np_grid)
+    new_grid[:, :w // 2, :] = np_grid[:, w // 2:, :]
+    new_grid[:, w // 2:, :] = np_grid[:, :w // 2, :]
+    np2torch = torch.FloatTensor(new_grid).to(device)
+    return np2torch
 
 

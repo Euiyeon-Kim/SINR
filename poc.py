@@ -20,9 +20,9 @@ from utils.viz import visualize_grid
 '''
 
 
-EXP_NAME = 'learnit_mountains_patch/poc'
-PTH_PATH = 'exps/learnit_mountains_patch/maml/ckpt/final.pth'
-PATH = 'inputs/mountains.jpg'
+EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/mse_find_origin_grid'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = 'inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000
@@ -49,10 +49,6 @@ if __name__ == '__main__':
         param.trainable = False
     model.eval()
 
-    grid = grid.permute(2, 0, 1)
-    grid = RandomCrop((128, 128))(grid)
-    grid = Resize((h, w))(grid).permute(1, 2, 0)
-
     pred = model(grid)
     pred = pred.permute(2, 0, 1)
     save_image(pred, f'exps/{EXP_NAME}/recon.jpg')
@@ -74,7 +70,7 @@ if __name__ == '__main__':
 
         writer.add_scalar("loss", loss.item(), i)
 
-        if (i+1) % 500 == 0:
+        if i == 0 or (i+1) % 500 == 0:
             pred = pred.permute(2, 0, 1)
             visualize_grid(find, f'exps/{EXP_NAME}/img/{i}_{loss.item():.4f}_grid.jpg', device)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}_{loss.item():.4f}_find.jpg')
