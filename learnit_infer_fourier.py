@@ -10,15 +10,17 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.utils import create_grid
 from models.maml import SirenModel
 
-EXP_NAME = 'balloons/learnit_var_patch_64_fourier/inr_origin'
+EXP_NAME = 'balloons_fourier/learnit_var_patch_64_fourier/inr_origin'
+B_PATH = 'exps/balloons/learnit_var_patch_64_fourier/ckpt/B.pth'
 PTH_PATH = 'exps/balloons/learnit_var_patch_64_fourier/ckpt/19999.pth'
 PATH = 'inputs/balloons.png'
-
 
 W0 = 50
 TEST_RANGE = 500
 LR = 1e-2
 
+SCALE = 10
+MAPPING_SIZE = 256
 
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/img', exist_ok=True)
@@ -35,13 +37,16 @@ if __name__ == '__main__':
     grid = create_grid(h, w, device=device)
     in_f = grid.shape[-1]
 
-    model = SirenModel(coord_dim=in_f, num_c=3, w0=W0).to(device)
+    B_gauss = torch.load(B_PATH)
+    x_proj = (2. * np.pi * grid) @ B_gauss.t()
+    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=c, w0=W0).to(device)
     model.load_state_dict(torch.load(PTH_PATH))
 
     optim = torch.optim.SGD(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
-    pred = model(grid)
+    pred = model(mapped_input)
     pred = pred.permute(2, 0, 1)
     save_image(pred, f'exps/{EXP_NAME}/meta.jpg')
 
@@ -49,7 +54,7 @@ if __name__ == '__main__':
         model.train()
         optim.zero_grad()
 
-        pred = model(grid)
+        pred = model(mapped_input)
         loss = loss_fn(pred, img)
 
         loss.backward()
