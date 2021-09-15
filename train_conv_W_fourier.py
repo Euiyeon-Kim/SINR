@@ -5,7 +5,7 @@ from PIL import Image
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import save_image
-from torchvision.transforms import RandomCrop
+
 
 from utils.viz import visualize_grid
 from utils.utils import create_grid
@@ -30,15 +30,16 @@ PATH = 'inputs/balloons_multiscale/0.png'
 
 W0 = 50
 MAX_ITERS = 1000000
-LR = 5e-4
+LR = 1e-4
 
 D_PAD = 5
 N_CRITIC = 5
 GEN_ITER = 2
 PATCH_SIZE = 16
-GP_LAMBDA = 0.1
+GP_LAMBDA = 5.0
 RECON_LAMBDA = 10.0
 
+NOISE_SAMPLE = 1
 SCALE = 10
 MAPPING_SIZE = 256
 
@@ -72,7 +73,7 @@ if __name__ == '__main__':
     mapper = MappingConv(in_c=2, out_c=2).to(device)
     m_optim = torch.optim.Adam(mapper.parameters(), lr=LR, betas=(0.5, 0.999))
 
-    d = Discriminator(nfc=32).to(device)
+    d = Discriminator(nfc=64).to(device)
     d_optim = torch.optim.Adam(d.parameters(), lr=LR, betas=(0.5, 0.999))
     loss_fn = torch.nn.MSELoss()
     pad_fn = torch.nn.ZeroPad2d(D_PAD)
@@ -91,8 +92,8 @@ if __name__ == '__main__':
             d_real_loss.backward(retain_graph=True)
 
             # Train with fake image
-            noise_coord = torch.randn((1, 1, h, w)) .expand(1, 2, h, w).to(device)
-            upsampled_coord = pad_fn(noise_coord)
+            noise_coord = torch.randn((1, 1, h // NOISE_SAMPLE, w // NOISE_SAMPLE)).expand(1, 2, h // NOISE_SAMPLE, w // NOISE_SAMPLE).to(device)
+            upsampled_coord = pad_fn(torch.nn.Upsample((h, w), mode='bilinear', align_corners=True)(noise_coord))
             generated_coord = torch.squeeze(mapper(upsampled_coord)).permute(1, 2, 0)
 
             x_proj = (2. * np.pi * generated_coord) @ B_gauss.t()
@@ -121,8 +122,8 @@ if __name__ == '__main__':
             mapper.train()
             m_optim.zero_grad()
 
-            noise_coord = torch.randn((1, 1, h, w)).expand(1, 2, h, w).to(device)
-            upsampled_coord = pad_fn(noise_coord)
+            noise_coord = torch.randn((1, 1, h // NOISE_SAMPLE, w // NOISE_SAMPLE)).expand(1, 2, h // NOISE_SAMPLE, w // NOISE_SAMPLE).to(device)
+            upsampled_coord = pad_fn(torch.nn.Upsample((h, w), mode='bilinear', align_corners=True)(noise_coord))
             generated_coord = torch.squeeze(mapper(upsampled_coord)).permute(1, 2, 0)
             x_proj = (2. * np.pi * generated_coord) @ B_gauss.t()
             mapped_generated_coord = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
@@ -130,8 +131,8 @@ if __name__ == '__main__':
             generated = torch.unsqueeze(model(mapped_generated_coord).permute(2, 0, 1).detach(), dim=0)
             fake_patch = pad_fn(generated)
 
-            recon_noise = torch.randn((1, 1, h, w)).expand(1, 2, h, w).to(device)
-            upsampled_recon_noise = pad_fn(recon_noise)
+            recon_noise = torch.zeros((1, 1, h // 8, w // 8)).expand(1, 2, h // 8, w // 8).to(device)
+            upsampled_recon_noise = pad_fn(torch.nn.Upsample((h, w), mode='bilinear', align_corners=True)(recon_noise))
             recon_coord = torch.squeeze(mapper(upsampled_recon_noise)).permute(1, 2, 0)
             x_proj = (2. * np.pi * recon_coord) @ B_gauss.t()
             mapped_recon_coord = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
@@ -152,10 +153,11 @@ if __name__ == '__main__':
         # Log mapper losses
         writer.add_scalar("g/total", g_loss.item(), iter)
         writer.add_scalar("g/critic", -adv_loss.item(), iter)
+        writer.add_scalar("g/recon", recon_loss.item(), iter)
         writer.flush()
 
         # Log image
-        if iter == 0 or (iter + 1) % 500 == 0:
+        if iter == 0 or (iter + 1) % 50 == 0:
             # save_image(generated, f'exps/{EXP_NAME}/img/{iter}_all.jpg')
             save_image(recon, f'exps/{EXP_NAME}/img/{iter}_recon.jpg')
             save_image(generated, f'exps/{EXP_NAME}/img/{iter}_fake.jpg')
