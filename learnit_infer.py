@@ -10,8 +10,8 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.utils import create_grid
 from models.maml import SirenModel
 
-EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
+EXP_NAME = 'balloons/learnit_var_patch_32/inr_origin'
+PTH_PATH = 'exps/balloons/learnit_var_patch_32/ckpt/19000.pth'
 PATH = 'inputs/balloons.png'
 
 

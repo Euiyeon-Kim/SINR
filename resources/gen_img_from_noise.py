@@ -15,7 +15,7 @@ from models.siren import SirenModel
 
 
 EXP_NAME = 'gen_img_from_noise'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 MAX_ITERS = 400
 LR = 1e-4
 

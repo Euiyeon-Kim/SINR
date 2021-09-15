@@ -10,8 +10,8 @@ from utils.utils import create_grid
 from utils.utils import ResizeConfig as config
 
 
-EXP_NAME = 'poc'
-PATH = 'stone.png'
+EXP_NAME = 'tmp'
+PATH = './inputs/balloons.png'
 PTH_NAME = 'final'
 
 
@@ -29,6 +29,11 @@ if __name__ == '__main__':
     img = torch.unsqueeze(img.permute(2, 0, 1), dim=0)
     adjust_scales(img, config)
     reals = creat_reals_pyramid(img, [], config)
+
+    os.makedirs('inputs/balloons_multiscale', exist_ok=True)
+    for idx, real in enumerate(reals):
+        save_image(real[0], f'inputs/balloons_multiscale/{idx}.jpg')
+    exit()
 
     model = SirenModel(coord_dim=2, num_c=3).to(device)
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))

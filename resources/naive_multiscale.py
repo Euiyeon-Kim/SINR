@@ -10,10 +10,15 @@ from utils.utils import ResizeConfig as config
 from models.siren import SirenModel
 
 
-EXP_NAME = 'multi'
-PATH = '../stone.png'
+EXP_NAME = 'learn-multi'
+PATH = '../inputs/balloons.png'
+
+W0 = 50
 MAX_ITERS = 1000
 LR = 1e-4
+
+SCALE = 10
+MAPPING_SIZE = 256
 
 
 def create_grid(h, w, device):
@@ -41,9 +46,11 @@ if __name__ == '__main__':
     adjust_scales(img, config)
     reals = creat_reals_pyramid(img, [], config)
 
-    model = SirenModel(coord_dim=2, num_c=3).to(device)
+    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, w0=W0).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
+
+    B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
 
     grids = []
     for idx, cur_scale in enumerate(reals):
@@ -56,7 +63,10 @@ if __name__ == '__main__':
 
     for step in range(MAX_ITERS):
         for idx, (grid, real) in enumerate(zip(grids, reals)):
-            pred = model(grid)
+            x_proj = (2. * np.pi * grid) @ B_gauss.t()
+            mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+
+            pred = model(mapped_input)
             loss = loss_fn(pred, real)
 
             loss.backward()

@@ -10,7 +10,7 @@ from models.siren import SirenModel
 from utils.utils import create_grid
 
 EXP_NAME = 'balloons_fourier_sin_only'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 2000

@@ -20,8 +20,8 @@ from utils.viz import visualize_grid
 '''
 
 
-EXP_NAME = 'balloons/learnit_var_patch_64/inr_origin/mse_find_origin_grid'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+EXP_NAME = 'balloons/learnit_var_patch_64/mse_find_coord_from_0'
+PTH_PATH = 'exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
 PATH = 'inputs/balloons.png'
 
 W0 = 50
@@ -54,7 +54,8 @@ if __name__ == '__main__':
     save_image(pred, f'exps/{EXP_NAME}/recon.jpg')
     visualize_grid(grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
 
-    find = grid.to(device).detach().requires_grad_(True)
+    # find = grid.to(device).detach().requires_grad_(True)
+    find = torch.zeros((h, w, 2)).to(device).detach().requires_grad_(True)
     optim = torch.optim.Adam({find}, lr=LR)
     loss_fn = torch.nn.MSELoss()
 

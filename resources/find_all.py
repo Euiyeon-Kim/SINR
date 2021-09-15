@@ -12,7 +12,7 @@ from models.siren import SirenModel
 
 
 EXP_NAME = 'balloons_fourier'
-PATH = 'inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 
 W0 = 50

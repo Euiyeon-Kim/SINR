@@ -19,7 +19,7 @@ from utils.viz import visualize_grid
 
 
 EXP_NAME = 'balloons_fourier'
-PATH = 'inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 
 W0 = 50

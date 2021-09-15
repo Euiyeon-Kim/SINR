@@ -12,7 +12,7 @@ from models.maml import MAML
 from utils.utils import create_grid
 
 
-EXP_NAME = 'balloons/learnit_var_patch_64'
+EXP_NAME = 'balloons/learnit_var_patch_64_fourier'
 PATH = './inputs/balloons.png'
 
 W0 = 50
@@ -21,6 +21,9 @@ PATCH_SIZE = 64
 BATCH_SIZE = 1
 INNER_STEPS = 2
 MAX_ITERS = 20000
+
+SCALE = 10
+MAPPING_SIZE = 256
 
 OUTER_LR = 1e-5
 INNER_LR = 1e-2
@@ -38,7 +41,11 @@ if __name__ == '__main__':
     img = torch.unsqueeze(torch.FloatTensor(img).permute(2, 0, 1).to(device), dim=0)
     grid = create_grid(PATCH_SIZE, PATCH_SIZE, device=device)
 
-    maml = MAML(coord_dim=2, num_c=3, w0=W0).to(device)
+    B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
+    x_proj = (2. * np.pi * grid) @ B_gauss.t()
+    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+
+    maml = MAML(coord_dim=2 * MAPPING_SIZE, num_c=3, w0=W0).to(device)
     outer_optimizer = torch.optim.Adam(maml.parameters(), lr=OUTER_LR)
     loss_fn = torch.nn.MSELoss()
 
@@ -48,7 +55,7 @@ if __name__ == '__main__':
         data = data.permute(0, 2, 3, 1).to(device)
 
         maml.train()
-        pred = maml(grid, data, True)
+        pred = maml(mapped_input, data, True)
 
         loss = loss_fn(pred, data)
         print(f'{outer_step}/{MAX_ITERS}: {loss.item()}')
@@ -64,7 +71,7 @@ if __name__ == '__main__':
             data = data[0].permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_pred.jpg')
             save_image(data, f'exps/{EXP_NAME}/img/{outer_step}_{loss.item():.8f}_data.jpg')
-            meta = maml.model(grid).permute(2, 0, 1)
+            meta = maml.model(mapped_input).permute(2, 0, 1)
             save_image(meta, f'exps/{EXP_NAME}/img/{outer_step}_meta.jpg')
 
         if (outer_step + 1) % 1000 == 0:
