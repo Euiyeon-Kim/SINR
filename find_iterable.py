@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from utils.viz import visualize_grid
 
 
 '''
@@ -18,10 +18,11 @@ from utils.utils import create_grid
 '''
 
 
-EXP_NAME = 'fourier_siren_mountain'
-PATH = '../inputs/mountains_patch/1_9.jpg'
+EXP_NAME = 'balloons_fourier'
+PATH = 'inputs/balloons.png'
 PTH_NAME = 'final'
 
+W0 = 50
 MAX_ITERS = 1000000
 LR = 1e-5
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, depth=5).to(device)
+    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, depth=5, w0=W0).to(device)
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))
     model.eval()
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     find_B = find_B.to(device).detach().requires_grad_(True)
     optim_B = torch.optim.Adam({find_B}, lr=LR)
 
-    find_coord = create_grid(h, w, device)
+    find_coord = torch.rand((h, w, 2)).to(device).detach().requires_grad_(True)
     optim_coord = torch.optim.Adam({find_coord}, lr=LR)
 
     loss_fn = nn.MSELoss()
@@ -79,8 +80,7 @@ if __name__ == '__main__':
         writer.add_scalar("B_loss", B_loss.item(), i)
         writer.add_scalar("coord_loss", coord_loss.item(), i)
 
-        if (i+1) % 1000 == 0:
+        if (i+1) % 100 == 0:
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/find_iter/img/{i}.jpg')
-
-    torch.save(B, f'exps/{EXP_NAME}/find_iter/ckpt/B.pt')
+            visualize_grid(find_coord, f'exps/{EXP_NAME}/find_iter/img/{i}_grid.jpg', device)

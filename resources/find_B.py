@@ -18,10 +18,11 @@ from utils.utils import create_grid
 '''
 
 
-EXP_NAME = 'fourier_siren_mountain'
-PATH = '../inputs/mountains_patch/1_9.jpg'
+EXP_NAME = 'balloons_fourier'
+PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 
+W0 = 50
 MAX_ITERS = 100000
 LR = 1e-5
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, depth=5).to(device)
+    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, w0=W0).to(device)
     model.load_state_dict(torch.load(f'exps/{EXP_NAME}/ckpt/{PTH_NAME}.pth'))
     model.eval()
 

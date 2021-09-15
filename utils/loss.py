@@ -16,3 +16,9 @@ def calcul_gp(discriminator, real, fake, device):
                                     create_graph=True, retain_graph=True, only_inputs=True)[0]
     gp = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
     return gp
+
+
+def thresh_mse(pred, gt, thresh):
+    mask = torch.ones_like(pred)
+    pred - gt
+    return

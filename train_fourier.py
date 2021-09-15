@@ -9,8 +9,10 @@ from torch.utils.tensorboard import SummaryWriter
 from models.siren import SirenModel
 from utils.utils import create_grid
 
-EXP_NAME = 'fourier_siren_balloons'
+EXP_NAME = 'balloons_fourier'
 PATH = './inputs/balloons.png'
+
+W0 = 50
 MAX_ITERS = 2000
 LR = 1e-4
 
@@ -36,7 +38,7 @@ if __name__ == '__main__':
     B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
     x_proj = (2. * np.pi * grid) @ B_gauss.t()
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
-    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=c).to(device)
+    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=c, w0=W0).to(device)
 
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()

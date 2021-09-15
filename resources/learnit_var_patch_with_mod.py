@@ -11,9 +11,13 @@ from torchvision.transforms import RandomResizedCrop, InterpolationMode
 from models.maml_with_mod import MAML
 from utils.utils import create_grid
 
+'''
+
+
+'''
 
 EXP_NAME = 'balloons/learnit_var_patch_with_mod_64'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 PATCH_SIZE = 64
