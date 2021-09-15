@@ -22,7 +22,7 @@ from models.adversarial import Discriminator, MappingConv
     W(MLP)랑 마찬가지, W가 conv라고 될 일이 아닌 듯
 '''
 
-EXP_NAME = 'balloons_fourier/multiscale/0'
+EXP_NAME = 'balloons_fourier/learnit_var_patch_64_fourier/multiscale/0'
 B_PATH = 'exps/balloons/learnit_var_patch_64_fourier/ckpt/B.pth'
 PTH_PATH = 'exps/balloons_fourier/learnit_var_patch_64_fourier/inr_origin/ckpt/final.pth'
 
