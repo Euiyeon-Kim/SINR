@@ -42,6 +42,7 @@ if __name__ == '__main__':
     grid = create_grid(PATCH_SIZE, PATCH_SIZE, device=device)
 
     B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
+    torch.save(B_gauss, f'exps/{EXP_NAME}/ckpt/B.pth')
     x_proj = (2. * np.pi * grid) @ B_gauss.t()
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
 

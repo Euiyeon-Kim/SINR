@@ -4,7 +4,6 @@ import numpy as np
 from PIL import Image
 
 import torch
-from torchvision.transforms import RandomCrop, Resize
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
