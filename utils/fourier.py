@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
+from PIL import Image
 
 
 def get_fourier(rgb_img):
     rgb = np.array(rgb_img)
-    gray = np.array(rgb_img.convert('L'))
     r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
+    gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
 
     fourier_info = {}
     for img, name in zip([r, g, b, gray], ['r', 'g', 'b', 'gray']):
@@ -23,21 +24,23 @@ def get_fourier(rgb_img):
     return fourier_info
 
 
-def viz_fourier(fourier_info, scale_phase=2, dir='.'):
+def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.'):
+    viz_dict = {}
     for k, v in fourier_info.items():
         recon = v['mag'] * np.exp(complex(0, 1) * v['phase'])
         recon = np.abs(np.fft.ifft2(np.fft.ifftshift(recon)))
 
         viz_magnitude = 20 * np.log(v['mag'])
-
-        random_mag = np.ones_like(v['mag']) * np.mean(v['mag']) * scale_phase
+        random_mag = np.ones_like(v['mag']) * fixed_mag * scale_phase
         random_mag_fourier = random_mag * np.exp(complex(0, 1) * v['phase'])
         viz_phase = np.abs(np.fft.ifft2(np.fft.ifftshift(random_mag_fourier)))
 
         cv2.imwrite(f'{dir}/{k}_recon.jpg', recon)
         cv2.imwrite(f'{dir}/{k}_mag.jpg', viz_magnitude)
         cv2.imwrite(f'{dir}/{k}_phase.jpg', viz_phase)
+        viz_dict[k] = {'mag': viz_magnitude, 'phase': viz_phase}
 
+    return viz_dict
 
 def recon_img_by_mag_and_phase(magnitude, phase):
     return np.abs(magnitude * np.exp(complex(0, 1) * phase))
