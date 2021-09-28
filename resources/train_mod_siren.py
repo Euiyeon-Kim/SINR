@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import ModulatedSirenModel
 from models.encoder import Encoder
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 EXP_NAME = 'mod_bird'
 PATH = '../inputs/birds.png'

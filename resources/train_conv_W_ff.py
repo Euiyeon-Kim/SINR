@@ -8,7 +8,7 @@ from torchvision.transforms import RandomCrop
 from torch.utils.tensorboard import SummaryWriter
 
 from utils.viz import visualize_grid
-from utils.utils import create_grid
+from utils.grid import create_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
 from models.adversarial import Discriminator, FMappingConv

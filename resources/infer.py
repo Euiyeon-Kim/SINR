@@ -4,10 +4,10 @@ import torch
 from torchvision.utils import save_image
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 EXP_NAME = 'single_balloon'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 INF_H = 512
 INF_W = 768

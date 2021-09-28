@@ -8,7 +8,7 @@ from torchvision.transforms import RandomCrop
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.utils import shuffle_grid
+from utils.grid import shuffle_grid
 from utils.viz import visualize_grid
 from utils.loss import calcul_gp
 from models.maml import SirenModel

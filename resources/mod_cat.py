@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.utils import create_grid
+from utils.grid import create_grid
 from models.siren import ModulatedSirenModel
 from models.encoder import Encoder
 

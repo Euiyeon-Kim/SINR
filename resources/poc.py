@@ -8,7 +8,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.maml import SirenModel
-from utils.utils import create_grid
+from utils.grid import create_grid
 from utils.viz import visualize_grid
 
 '''
@@ -20,8 +20,8 @@ from utils.viz import visualize_grid
 
 
 EXP_NAME = 'balloons/learnit_var_patch_64/mse_find_coord_from_0'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
-PATH = 'inputs/balloons.png'
+PTH_PATH = '../exps/balloons/learnit_var_patch_64/ckpt/19999.pth'
+PATH = '../inputs/balloons.png'
 
 W0 = 50
 MAX_ITERS = 1000000

@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import RandomResizedCrop, InterpolationMode
 
 from models.maml_with_mod import MAML
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 '''
 

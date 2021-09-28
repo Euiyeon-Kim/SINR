@@ -6,12 +6,12 @@ import torch
 from torchvision.utils import save_image
 
 from models.siren import SirenModel
-from utils.utils import create_grid
-from utils.utils import ResizeConfig as config
+from utils.grid import create_grid
+from utils.grid import ResizeConfig as config
 
 
 EXP_NAME = 'tmp'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 PTH_NAME = 'final'
 
 
@@ -25,12 +25,12 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     img = torch.FloatTensor(img).to(device)
 
-    from utils.utils import creat_reals_pyramid, adjust_scales
+    from utils.grid import creat_reals_pyramid, adjust_scales
     img = torch.unsqueeze(img.permute(2, 0, 1), dim=0)
     adjust_scales(img, config)
     reals = creat_reals_pyramid(img, [], config)
 
-    os.makedirs('inputs/balloons_multiscale', exist_ok=True)
+    os.makedirs('../inputs/balloons_multiscale', exist_ok=True)
     for idx, real in enumerate(reals):
         save_image(real[0], f'inputs/balloons_multiscale/{idx}.jpg')
     exit()

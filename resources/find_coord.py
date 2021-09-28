@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from utils.grid import create_grid
 from utils.viz import visualize_grid
 
 '''

@@ -7,7 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from models.maml import MAML
 from utils.dataloader import Custom
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 
 EXP_NAME = 'balloon/learnit_fixed_32'

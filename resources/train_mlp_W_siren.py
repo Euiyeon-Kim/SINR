@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 from torchvision.transforms import RandomCrop
 
 from utils.viz import visualize_grid
-from utils.utils import create_grid
+from utils.grid import create_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
 from models.adversarial import Discriminator, MappingNet

@@ -8,7 +8,7 @@ from torchvision.utils import save_image
 from torchvision.transforms import RandomCrop
 
 from utils.viz import visualize_grid
-from utils.utils import create_grid
+from utils.grid import create_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
 from models.adversarial import Discriminator, MappingConv
@@ -23,8 +23,8 @@ from models.adversarial import Discriminator, MappingConv
 '''
 
 EXP_NAME = 'balloons/multiscale/0'
-PTH_PATH = 'exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
-PATH = 'inputs/balloons_multiscale/0.png'
+PTH_PATH = '../exps/balloons/learnit_var_patch_64/inr_origin/ckpt/final.pth'
+PATH = '../inputs/balloons_multiscale/0.png'
 
 W0 = 50
 MAX_ITERS = 1000000

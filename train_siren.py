@@ -7,10 +7,10 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from utils.grid import create_grid
 
-EXP_NAME = 'balloons'
-PATH = './inputs/balloons.png'
+EXP_NAME = 'birds'
+PATH = './inputs/birds.png'
 
 W0 = 50
 MAX_ITERS = 2000

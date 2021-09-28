@@ -6,7 +6,7 @@ import torch
 from torchvision.utils import save_image
 
 from models.siren import SirenModel
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 EXP_NAME = 'fourier_siren_mountain'
 PATH = './inputs/mountains.jpg'

@@ -92,7 +92,7 @@ class ModulatedSirenModel(nn.Module):
 
 
 if __name__ == '__main__':
-    from utils.utils import create_grid
+    from utils.grid import create_grid
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = ModulatedSirenModel(2, 3).to(device)
     latent = torch.randn(256).to(device)

@@ -9,10 +9,10 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import RandomResizedCrop, InterpolationMode
 
 from models.maml import MAML
-from utils.utils import create_grid
+from utils.grid import create_grid
 
 
-EXP_NAME = 'balloons/learnit_var_patch'
+EXP_NAME = 'balloons/learnit_var_patch_64'
 PATH = '../inputs/balloons.png'
 
 W0 = 50

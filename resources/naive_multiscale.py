@@ -1,4 +1,6 @@
 import os
+from glob import glob
+
 import numpy as np
 from PIL import Image
 
@@ -6,26 +8,22 @@ import torch
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.utils import ResizeConfig as config
+from utils.grid import create_grid
 from models.siren import SirenModel
 
+'''
+    픽셀 수 스케일링 해보기
+'''
 
 EXP_NAME = 'learn-multi'
-PATH = '../inputs/balloons.png'
+DATA_ROOT = 'inputs/balloons_multiscale'
 
 W0 = 50
-MAX_ITERS = 1000
+MAX_ITERS = 2000
 LR = 1e-4
 
 SCALE = 10
 MAPPING_SIZE = 256
-
-
-def create_grid(h, w, device):
-    grid_y, grid_x = torch.meshgrid([torch.linspace(0, 1, steps=h),
-                                     torch.linspace(0, 1, steps=w)])
-    grid = torch.stack([grid_y, grid_x], dim=-1)
-    return grid.to(device)
 
 
 if __name__ == '__main__':
@@ -34,39 +32,36 @@ if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/logs', exist_ok=True)
     writer = SummaryWriter(f'exps/{EXP_NAME}/logs')
 
-    img = Image.open(PATH).convert('RGB')
-    img = np.array(img) / 255.
-    h, w, c = img.shape
-
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    img = torch.FloatTensor(img).to(device)
+    model = SirenModel(coord_dim=2, num_c=3, w0=W0).to(device)
+    # B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
 
-    from utils.utils import creat_reals_pyramid, adjust_scales
-    img = torch.unsqueeze(img.permute(2, 0, 1), dim=0)
-    adjust_scales(img, config)
-    reals = creat_reals_pyramid(img, [], config)
+    grids = []
+    reals = []
+    real_paths = sorted(glob(f'{DATA_ROOT}/*'))
+    for idx, p in enumerate(real_paths):
+        img = Image.open(p).convert('RGB')
+        img = np.array(img) / 255.
+        img = torch.FloatTensor(img).to(device)
+        h, w, c = img.shape
 
-    model = SirenModel(coord_dim=2 * MAPPING_SIZE, num_c=3, w0=W0).to(device)
+        os.makedirs(f'exps/{EXP_NAME}/img/{idx}', exist_ok=True)
+        grid = create_grid(h, w, device=device)
+        grids.append(grid)
+        reals.append(img)
+
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
-    B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
-
-    grids = []
-    for idx, cur_scale in enumerate(reals):
-        os.makedirs(f'exps/{EXP_NAME}/img/{idx}', exist_ok=True)
-        img = torch.squeeze(cur_scale).permute(1, 2, 0)
-        h, w, c = img.shape
-        grid = create_grid(h, w, device=device)
-        grids.append(grid)
-        reals[idx] = img
-
     for step in range(MAX_ITERS):
-        for idx, (grid, real) in enumerate(zip(grids, reals)):
-            x_proj = (2. * np.pi * grid) @ B_gauss.t()
-            mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+        for idx, (real, grid) in enumerate(zip(reals, grids)):
+            model.train()
+            optim.zero_grad()
 
-            pred = model(mapped_input)
+            # x_proj = (2. * np.pi * grid) @ B_gauss.t()
+            # mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+
+            pred = model(grid)
             loss = loss_fn(pred, real)
 
             loss.backward()
