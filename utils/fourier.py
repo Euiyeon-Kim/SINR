@@ -24,7 +24,7 @@ def get_fourier(rgb_img):
     return fourier_info
 
 
-def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.'):
+def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.', prefix=''):
     viz_dict = {}
     for k, v in fourier_info.items():
         recon = v['mag'] * np.exp(complex(0, 1) * v['phase'])
@@ -35,9 +35,11 @@ def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.'):
         random_mag_fourier = random_mag * np.exp(complex(0, 1) * v['phase'])
         viz_phase = np.abs(np.fft.ifft2(np.fft.ifftshift(random_mag_fourier)))
 
-        cv2.imwrite(f'{dir}/{k}_recon.jpg', recon)
-        cv2.imwrite(f'{dir}/{k}_mag.jpg', viz_magnitude)
-        cv2.imwrite(f'{dir}/{k}_phase.jpg', viz_phase)
+        if dir:
+            cv2.imwrite(f'{dir}/{prefix}{k}_recon.jpg', recon)
+            cv2.imwrite(f'{dir}/{prefix}{k}_mag.jpg', viz_magnitude)
+            cv2.imwrite(f'{dir}/{prefix}{k}_phase.jpg', viz_phase)
+
         viz_dict[k] = {'mag': viz_magnitude, 'phase': viz_phase}
 
     return viz_dict

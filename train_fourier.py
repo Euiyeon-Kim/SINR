@@ -9,8 +9,8 @@ from torch.utils.tensorboard import SummaryWriter
 from models.siren import SirenModel
 from utils.grid import create_grid
 
-EXP_NAME = 'balloons_fourier'
-PATH = './inputs/balloons.png'
+EXP_NAME = 'birds_fourier'
+PATH = './inputs/birds.png'
 
 W0 = 50
 MAX_ITERS = 2000
