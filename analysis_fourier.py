@@ -11,16 +11,17 @@ from models.siren import SirenModel
 from utils.grid import create_grid
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'birds_fourier/analysis_fourier'
-PATH = './inputs/birds.png'
-PTH_PATH = 'exps/birds_fourier/ckpt/final.pth'
-B_PATH = 'exps/birds_fourier/ckpt/B.pt'
+EXP_NAME = 'mountain_fourier/analysis_fourier'
+PATH = './inputs/mountains.jpg'
+PTH_PATH = 'exps/mountain_fourier/ckpt/final.pth'
+B_PATH = 'exps/mountain_fourier/ckpt/B.pt'
 
 W0 = 50
 MAPPING_SIZE = 256
 
-SCALE = 1.4
-ITER = 3
+SCALE = 1.3
+ITER = 1
+
 
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/origin', exist_ok=True)

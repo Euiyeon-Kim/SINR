@@ -11,15 +11,19 @@ from models.siren import SirenModel
 from utils.grid import create_grid
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'birds/analysis_fourier'
-PATH = './inputs/birds.png'
-PTH_PATH = 'exps/birds/ckpt/final.pth'
+EXP_NAME = 'stripe/analysis_fourier'
+PATH = './inputs/mountains.jpg'
+PTH_PATH = 'exps/stripe/ckpt/final.pth'
 
 W0 = 50
 SCALE = 1.4
 ITER = 3
 
 if __name__ == '__main__':
+    img = np.array(Image.open(PATH).convert('RGB'))
+    fourier_info = get_fourier(img)
+    origin_viz_dict = viz_fourier(fourier_info, dir=f'.')
+    exit()
     os.makedirs(f'exps/{EXP_NAME}/origin', exist_ok=True)
 
     img = np.array(Image.open(PATH).convert('RGB'))

@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from PIL import Image
 
 
 def get_fourier(rgb_img):
@@ -43,6 +42,7 @@ def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.', prefix='')
         viz_dict[k] = {'mag': viz_magnitude, 'phase': viz_phase}
 
     return viz_dict
+
 
 def recon_img_by_mag_and_phase(magnitude, phase):
     return np.abs(magnitude * np.exp(complex(0, 1) * phase))

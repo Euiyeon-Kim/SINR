@@ -11,16 +11,16 @@ from models.siren import SirenModel
 from utils.grid import create_grid
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'birds_fourier/analysis_fourier/comp_with_bilinear'
-PATH = './inputs/birds.png'
-PTH_PATH = 'exps/birds_fourier/ckpt/final.pth'
-B_PATH = 'exps/birds_fourier/ckpt/B.pt'
+EXP_NAME = 'stripe_fourier/analysis_fourier/comp_with_bicubic'
+PATH = './inputs/stripe.jpg'
+PTH_PATH = 'exps/stripe_fourier/ckpt/final.pth'
+B_PATH = 'exps/stripe_fourier/ckpt/B.pt'
 
 W0 = 50
-MAPPING_SIZE = 256
+MAPPING_SIZE = 1
 
-SCALE = 1.4
-ITER = 3
+SCALE = 1.5
+ITER = 1
 
 if __name__ == '__main__':
     img = Image.open(PATH).convert('RGB')
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         os.makedirs(f'exps/{EXP_NAME}/{SCALE}^{i + 1}', exist_ok=True)
         infer_h, infer_w = int(infer_h * SCALE), int(infer_w * SCALE)
 
-        resized = np.array(img.resize((infer_w, infer_h), Image.BILINEAR))
+        resized = np.array(img.resize((infer_w, infer_h), Image.BICUBIC))
         cv2.imwrite(f'exps/{EXP_NAME}/{SCALE}^{i+1}/resized.jpg', cv2.cvtColor(resized, cv2.COLOR_RGB2BGR))
 
         resized_fourier_info = get_fourier(resized)
