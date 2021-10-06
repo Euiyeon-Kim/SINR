@@ -7,14 +7,14 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.grid import create_grid
+from utils.utils import prepare_fourier_inp
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'mountain_fourier_log'
-PATH = './inputs/mountains.jpg'
+EXP_NAME = 'stripe_fourier_log'
+PATH = './inputs/stripe.jpg'
 
 W0 = 50
-MAX_ITERS = 2000
+MAX_ITERS = 1000
 LR = 1e-4
 
 SCALE = 10
@@ -27,19 +27,9 @@ if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/logs', exist_ok=True)
     writer = SummaryWriter(f'exps/{EXP_NAME}/logs')
 
-    img = Image.open(PATH).convert('RGB')
-    img = np.array(img) / 255.
-    h, w, c = img.shape
-
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    img = torch.FloatTensor(img).to(device)
-    grid = create_grid(h, w, device=device)
-    in_f = grid.shape[-1]
-
-    B_gauss = torch.randn((MAPPING_SIZE, 2)).to(device) * SCALE
-    x_proj = (2. * np.pi * grid) @ B_gauss.t()
-    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
-    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=c, w0=W0).to(device)
+    img, B, mapped_input = prepare_fourier_inp(PATH, device, mapping_size=MAPPING_SIZE, scale=SCALE)
+    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=3, w0=W0).to(device)
 
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
@@ -69,4 +59,4 @@ if __name__ == '__main__':
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')
 
     torch.save(model.state_dict(), f'exps/{EXP_NAME}/ckpt/final.pth')
-    torch.save(B_gauss, f'exps/{EXP_NAME}/ckpt/B.pt')
+    torch.save(B, f'exps/{EXP_NAME}/ckpt/B.pt')

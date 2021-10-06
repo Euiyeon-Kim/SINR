@@ -16,6 +16,7 @@ B_PATH = 'exps/mountain_fourier/ckpt/B.pt'
 W0 = 50
 MAPPING_SIZE = 256
 
+
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = SirenModel(coord_dim=2*MAPPING_SIZE, num_c=3, w0=W0).to(device)
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     pred = model(mapped_input)
 
     for tmp in outputs:
+        print(tmp)
         print(tmp.shape)
-
+        exit()
 
