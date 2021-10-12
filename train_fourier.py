@@ -1,6 +1,4 @@
 import os
-import numpy as np
-from PIL import Image
 
 import torch
 from torchvision.utils import save_image
@@ -10,10 +8,11 @@ from models.siren import SirenModel
 from utils.utils import prepare_fourier_inp
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'stripe_fourier_log'
+W0 = 25
+
+EXP_NAME = f'stripe_fourier_log/256_5_{W0}'
 PATH = './inputs/stripe.jpg'
 
-W0 = 50
 MAX_ITERS = 1000
 LR = 1e-4
 
@@ -46,7 +45,7 @@ if __name__ == '__main__':
 
         writer.add_scalar("loss", loss.item(), i)
 
-        if (i+1) % 1 == 0:
+        if i % 10 == 0:
             pred_img = (pred * 255.).detach().cpu().numpy()
             fourier_info = get_fourier(pred_img)
             inr_viz_dict = viz_fourier(fourier_info, dir=None)

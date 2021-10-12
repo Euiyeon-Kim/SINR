@@ -3,12 +3,11 @@ import numpy as np
 from PIL import Image
 
 import torch
-from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import save_image
+from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import RandomCrop
 
-from utils.viz import visualize_grid
-from utils.grid import create_grid
+from utils.grid import create_grid, visualize_grid
 from utils.loss import calcul_gp
 from models.siren import SirenModel
 from models.adversarial import Discriminator, MappingConv

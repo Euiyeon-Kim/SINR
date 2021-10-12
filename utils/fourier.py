@@ -16,9 +16,10 @@ def get_fourier(rgb_img):
         # F(u, v)를 복소평면 상에 표현했을 때 반지름
         # x축 방향으로 W / u pixel, y축 방향으로 H / v pixel 마다 반복되는 신호가 얼마나 들어있는지
         magnitude = np.abs(shift)
-        # F(u, v)를 복소평면 상에 표현했을 때 radian
+        # F(u, v)를 복소평7면 상에 표현했을 때 radian
         phase = np.angle(shift)
-        fourier_info[name] = {'mag': magnitude,
+        fourier_info[name] = {'shift': shift,
+                              'mag': magnitude,
                               'phase': phase}
     return fourier_info
 
@@ -45,4 +46,6 @@ def viz_fourier(fourier_info, fixed_mag=3000, scale_phase=2, dir='.', prefix='')
 
 
 def recon_img_by_mag_and_phase(magnitude, phase):
-    return np.abs(magnitude * np.exp(complex(0, 1) * phase))
+    recon = np.abs(magnitude * np.exp(complex(0, 1) * phase))
+    recon = np.abs(np.fft.ifft2(np.fft.ifftshift(recon)))
+    return recon

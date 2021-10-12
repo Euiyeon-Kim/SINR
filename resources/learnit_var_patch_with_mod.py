@@ -12,8 +12,7 @@ from models.maml_with_mod import MAML
 from utils.grid import create_grid
 
 '''
-
-
+    Modulated SIREN을 MAML써서 learnit
 '''
 
 EXP_NAME = 'balloons/learnit_var_patch_with_mod_64'

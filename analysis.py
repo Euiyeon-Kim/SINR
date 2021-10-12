@@ -23,7 +23,7 @@ if __name__ == '__main__':
     img = np.array(Image.open(PATH).convert('RGB'))
     fourier_info = get_fourier(img)
     origin_viz_dict = viz_fourier(fourier_info, dir=f'.')
-    exit()
+
     os.makedirs(f'exps/{EXP_NAME}/origin', exist_ok=True)
 
     img = np.array(Image.open(PATH).convert('RGB'))

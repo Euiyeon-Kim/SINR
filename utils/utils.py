@@ -1,7 +1,10 @@
+import os
+
 import numpy as np
 from PIL import Image
 
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 
 def create_grid(h, w, device, min_v=0, max_v=1):
@@ -39,3 +42,15 @@ def prepare_fourier_inp(path, device, mapping_size=256, scale=10):
     B = sample_B(mapping_size, scale, device)
     mapped_input = grid_to_fourier_inp(grid, B)
     return img, B, mapped_input
+
+
+def make_exp_dirs(exp_name, log=True):
+    os.makedirs(f'exps/{exp_name}/img', exist_ok=True)
+    os.makedirs(f'exps/{exp_name}/ckpt', exist_ok=True)
+    os.makedirs(f'exps/{exp_name}/logs', exist_ok=True)
+    if log:
+        return SummaryWriter(f'exps/{exp_name}/logs')
+
+
+def get_device():
+    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

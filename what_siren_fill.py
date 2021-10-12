@@ -11,16 +11,17 @@ from models.siren import SirenModel
 from utils.grid import create_grid
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'stripe_fourier/analysis_fourier/comp_with_bicubic'
-PATH = './inputs/stripe.jpg'
-PTH_PATH = 'exps/stripe_fourier/ckpt/final.pth'
-B_PATH = 'exps/stripe_fourier/ckpt/B.pt'
-
 W0 = 50
+
+EXP_NAME = 'stripe_fourier_log/analysis_fourier/comp_with_bicubic'
+PATH = './inputs/stripe.jpg'
+PTH_PATH = f'exps/stripe_fourier_log/256_5_{W0}/ckpt/final.pth'
+B_PATH = f'exps/stripe_fourier_log/256_5_{W0}/ckpt/B.pt'
+
 MAPPING_SIZE = 1
 
 SCALE = 1.5
-ITER = 1
+ITER = 2
 
 if __name__ == '__main__':
     img = Image.open(PATH).convert('RGB')
