@@ -11,19 +11,19 @@ from models.siren import SirenModel
 from utils.grid import create_grid
 from utils.fourier import get_fourier, viz_fourier
 
-EXP_NAME = 'stripe/analysis_fourier'
-PATH = './inputs/mountains.jpg'
-PTH_PATH = 'exps/stripe/ckpt/final.pth'
+EXP_NAME = 'mountain_fourier/analysis_fourier'
+PATH = '../inputs/mountains.jpg'
+PTH_PATH = '../exps/mountain_fourier/ckpt/final.pth'
+B_PATH = '../exps/mountain_fourier/ckpt/B.pt'
 
 W0 = 50
-SCALE = 1.4
-ITER = 3
+MAPPING_SIZE = 256
+
+SCALE = 1.3
+ITER = 1
+
 
 if __name__ == '__main__':
-    img = np.array(Image.open(PATH).convert('RGB'))
-    fourier_info = get_fourier(img)
-    origin_viz_dict = viz_fourier(fourier_info, dir=f'.')
-
     os.makedirs(f'exps/{EXP_NAME}/origin', exist_ok=True)
 
     img = np.array(Image.open(PATH).convert('RGB'))
@@ -31,16 +31,19 @@ if __name__ == '__main__':
     origin_viz_dict = viz_fourier(fourier_info, dir=f'exps/{EXP_NAME}/origin')
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = SirenModel(coord_dim=2, num_c=3, w0=W0).to(device)
+    model = SirenModel(coord_dim=2*MAPPING_SIZE, num_c=3, w0=W0).to(device)
     model.load_state_dict(torch.load(PTH_PATH))
+    B = torch.load(B_PATH)
 
     # Analysis Single Scale
     infer_h, infer_w, c = img.shape
     os.makedirs(f'exps/{EXP_NAME}/recon', exist_ok=True)
     grid = create_grid(infer_h, infer_w, device=device)
+    x_proj = (2. * np.pi * grid) @ B.t()
+    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
 
     model.eval()
-    pred = model(grid)
+    pred = model(mapped_input)
 
     recon_img = (pred * 255.).detach().cpu().numpy()
     fourier_info = get_fourier(recon_img)
@@ -61,8 +64,11 @@ if __name__ == '__main__':
         os.makedirs(f'exps/{EXP_NAME}/{SCALE}^{i+1}', exist_ok=True)
 
         grid = create_grid(infer_h, infer_w, device=device)
+        x_proj = (2. * np.pi * grid) @ B.t()
+        mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+
         model.eval()
-        pred = model(grid)
+        pred = model(mapped_input)
 
         pred_img = (pred * 255.).detach().cpu().numpy()
         fourier_info = get_fourier(pred_img)

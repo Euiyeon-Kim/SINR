@@ -13,7 +13,7 @@ class MappingNet(nn.Module):
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
-        return nn.Tanh()(self.layers(x))
+        return self.layers(x)
 
 
 class MappingConv(nn.Module):

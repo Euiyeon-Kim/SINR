@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
 from models.siren import SirenModel
-from utils.viz import visualize_grid
+from utils.grid import visualize_grid
 
 
 '''
@@ -18,9 +18,9 @@ from utils.viz import visualize_grid
 '''
 
 
-EXP_NAME = 'balloons_fourier'
-PATH = '../inputs/balloons.png'
-PTH_NAME = 'final'
+EXP_NAME = 'balloons_fourier/learnit_with_transform'
+PATH = '89.png'
+PTH_NAME = '14999'
 
 W0 = 50
 MAX_ITERS = 1000000

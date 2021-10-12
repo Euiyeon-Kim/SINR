@@ -11,9 +11,9 @@ from torch.utils.tensorboard import SummaryWriter
 from models.siren import SirenModel
 
 
-EXP_NAME = 'balloons_fourier'
-PATH = '../inputs/balloons.png'
-PTH_NAME = 'final'
+EXP_NAME = 'balloons_fourier/learnit_with_transform'
+PATH = '89.png'
+PTH_NAME = '14999'
 
 W0 = 50
 MAX_ITERS = 1000000
@@ -57,6 +57,6 @@ if __name__ == '__main__':
         print(loss.item())
         writer.add_scalar("loss", loss.item(), i)
 
-        if (i+1) % 1000 == 0:
+        if (i+1) % 100 == 0:
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/find_all/img/{i}.jpg')

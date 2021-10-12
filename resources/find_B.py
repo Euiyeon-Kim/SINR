@@ -18,9 +18,9 @@ from utils.grid import create_grid
 '''
 
 
-EXP_NAME = 'balloons_fourier'
-PATH = '../inputs/balloons.png'
-PTH_NAME = 'final'
+EXP_NAME = 'balloons_fourier/learnit_with_transform'
+PATH = '../89.png'
+PTH_NAME = '14999'
 
 W0 = 50
 MAX_ITERS = 100000
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     grid = create_grid(h, w, device=device)  # .permute(2, 0, 1)
     # grid = RandomCrop(64)(grid).permute(1, 2, 0)
 
-    B_real = torch.load(f'exps/{EXP_NAME}/ckpt/B.pt')
+    B_real = torch.load(f'exps/{EXP_NAME}/ckpt/B.pth')
     real_x = (2. * np.pi * grid) @ B_real.t()
     real_input = torch.cat([torch.sin(real_x), torch.cos(real_x)], dim=-1)
     origin = model(real_input)

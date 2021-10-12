@@ -47,6 +47,26 @@ class SirenModel(nn.Module):
         return x
 
 
+class SirenModelMod(nn.Module):
+    def __init__(self, coord_dim, num_c, w0=200, hidden_node=256, depth=5):
+        super(SirenModelMod, self).__init__()
+        layers = [SirenLayer(in_f=coord_dim, out_f=hidden_node, w0=w0, is_first=True)]
+        for _ in range(1, depth - 1):
+            layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
+        layers.append(SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, coords, mod=None, bias_param=None, mod_param=None):
+        if mod:
+            x = torch.matmul(coords, self.layers[0].linear.weight.T)
+            x = mod_param * x
+            x += bias_param # self.layers[0].linear.bias
+            x = self.layers[1:](x)
+        else:
+            x = self.layers(coords)
+        return x
+
+
 class Modulator(nn.Module):
     def __init__(self, in_f, hidden_node=256, depth=5):
         super(Modulator, self).__init__()

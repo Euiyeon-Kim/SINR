@@ -4,7 +4,7 @@ from PIL import Image
 
 from utils.fourier import get_fourier, viz_fourier
 
-PATH = './inputs/mountains.jpg'
+PATH = '../inputs/mountains.jpg'
 
 W0 = 50
 MAPPING_SIZE = 256

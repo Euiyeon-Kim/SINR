@@ -2,8 +2,10 @@ import os
 from PIL import Image
 from utils.fourier import get_fourier, viz_fourier
 
-
-PATH = 'inputs/stripe.jpg'
+'''
+    원본 이미지의 fourier feature visualize and save
+'''
+PATH = '../inputs/stripe.jpg'
 SAVE = 'origin_fourier/stripe'
 
 

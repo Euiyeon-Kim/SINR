@@ -4,8 +4,9 @@ from matplotlib import pyplot as plt
 
 import torch
 
-from models.siren import SirenModel
+from models.siren import SirenHook
 from utils.grid import create_grid
+from utils.utils import grid_to_fourier_inp
 
 
 EXP_NAME = 'mountain_fourier/analysis_fourier'
@@ -19,31 +20,19 @@ MAPPING_SIZE = 256
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = SirenModel(coord_dim=2*MAPPING_SIZE, num_c=3, w0=W0).to(device)
-    model.load_state_dict(torch.load(PTH_PATH))
-    B = torch.load(B_PATH)
+    model = SirenHook(coord_dim=2*MAPPING_SIZE, num_c=3, w0=W0).to(device)
+    model.load_state_dict(torch.load(PTH_PATH, map_location=device), strict=False)
+    B = torch.load(B_PATH).to(device)
 
     img = np.array(Image.open(PATH).convert('RGB'))
     infer_h, infer_w, c = img.shape
 
     grid = create_grid(infer_h, infer_w, device=device)
-    x_proj = (2. * np.pi * grid) @ B.t()
-    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
-
-    outputs = []
-    def hook(module, input, output):
-        outputs.append(output)
-    model.layers[0].register_forward_hook(hook)
-    model.layers[1].register_forward_hook(hook)
-    model.layers[2].register_forward_hook(hook)
-    model.layers[3].register_forward_hook(hook)
-    model.layers[4].register_forward_hook(hook)
+    mapped_input = grid_to_fourier_inp(grid, B).to(device)
 
     model.eval()
     pred = model(mapped_input)
 
-    for tmp in outputs:
-        print(tmp)
-        print(tmp.shape)
-        exit()
-
+    pred = pred.permute(2, 0, 1)
+    from torchvision.utils import save_image
+    save_image(pred, 'tmp.jpg')
