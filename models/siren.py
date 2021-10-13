@@ -60,7 +60,7 @@ class SirenModelMod(nn.Module):
         if mod:
             x = torch.matmul(coords, self.layers[0].linear.weight.T)
             x = mod_param * x
-            x += bias_param # self.layers[0].linear.bias
+            x += self.layers[0].linear.bias
             x = self.layers[1:](x)
         else:
             x = self.layers(coords)
