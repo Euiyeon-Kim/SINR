@@ -10,10 +10,10 @@ from utils.utils import make_exp_dirs, get_device
 '''
     뒷 쪽 layer만 튜닝할 수록 원본에서 얼마 안바뀜
 '''
-EXP_NAME = 'balloons/learnit_with_transform/tune_first'
+EXP_NAME = 'balloons/learnit_with_transform/tune_sec'
 
-PATH = 'inputs/balloons.png'
-PTH_PATH = 'exps/balloons/tmp/ckpt/99.pth'
+PATH = '../inputs/balloons.png'
+PTH_PATH = '../exps/balloons/learnit_with_transform/ckpt/final.pth'
 
 W0 = 50
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     optim = torch.optim.Adam(model.parameters(), lr=1e-4)
     loss_fn = torch.nn.MSELoss()
-    for i in range(100):
+    for i in range(1000):
         model.train()
         optim.zero_grad()
 

@@ -29,18 +29,58 @@ class Custom(Dataset):
         return img
 
 
+class PatchINR(Dataset):
+    def __init__(self, path, patch_size=131):
+        self.img = np.array(Image.open(path).convert('RGB')) / 255.
+        self.h, self.w, _ = self.img.shape
+        self.ph, self.pw = (self.h - patch_size + 1), (self.w - patch_size + 1)
+        self.num_pixel = self.ph * self.pw
+        self.patch_size = patch_size
+
+    def __len__(self):
+        return self.num_pixel
+
+    def __getitem__(self, idx):
+        c_h = (idx // self.pw) + (self.patch_size // 2)
+        c_w = (idx % self.pw) + (self.patch_size // 2)
+        img = self.img[c_h - (self.patch_size // 2):c_h + (self.patch_size // 2 + 1),
+              c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
+        flat = img.flatten()
+
+        return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw], dtype=np.float32), flat
+
+
+class PatchINRVal(Dataset):
+    def __init__(self, path, patch_size=131):
+        self.img = np.array(Image.open(path).convert('RGB')) / 255.
+        self.h, self.w, _ = self.img.shape
+        self.ph, self.pw = (self.h - patch_size + 1), (self.w - patch_size + 1)
+        self.num_pixel = self.ph * self.pw
+        self.patch_size = patch_size
+
+    def __len__(self):
+        return self.num_pixel
+
+    def __getitem__(self, idx):
+        c_h = (idx // self.pw) + (self.patch_size // 2)
+        c_w = (idx % self.pw) + (self.patch_size // 2)
+        img = self.img[c_h - (self.patch_size // 2):c_h + (self.patch_size // 2 + 1),
+              c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
+        flat = img.flatten()
+
+        return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw], dtype=np.float32), flat
+
+
 if __name__ == '__main__':
-    import os
     import torch
-    from torchvision.utils import save_image
-
-    os.makedirs('../test_dataloader', exist_ok=True)
-    origin = Image.open('../inputs/mountains.jpg').convert('RGB')
-
-    for i in range(10):
-        img = transform(origin)
-        print(img.shape, torch.min(img), torch.max(img))
-        save_image(img, f'../test_dataloader/{i}.jpg')
-
+    from torch.utils.data import DataLoader
+    dataset = PatchINR('../inputs/balloons.png')
+    loader = DataLoader(dataset, shuffle=False, batch_size=128)
+    for data in loader:
+        coord, img = data
+        from torchvision.utils import save_image
+        print(coord.shape)
+        print(img.shape)
+    exit()
 
 

@@ -11,9 +11,9 @@ from models.adversarial import Discriminator, MappingNet
 
 EXP_NAME = 'balloons_fourier/learnit_with_transform/mod_first/w*mod+bias'
 
-PATH = 'inputs/balloons.png'
-PTH_PATH = 'exps/balloons_fourier/learnit_with_transform/ckpt/14999.pth'
-B_PATH = 'exps/balloons_fourier/learnit_with_transform/ckpt/B.pth'
+PATH = '../inputs/balloons.png'
+PTH_PATH = '../exps/balloons_fourier/learnit_with_transform/ckpt/14999.pth'
+B_PATH = '../exps/balloons_fourier/learnit_with_transform/ckpt/B.pth'
 
 W0 = 50
 MAPPING_SIZE = 256
