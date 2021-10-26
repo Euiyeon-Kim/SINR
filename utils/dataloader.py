@@ -31,7 +31,7 @@ class Custom(Dataset):
 
 class PatchINR(Dataset):
     def __init__(self, path, patch_size=131):
-        self.img = np.array(Image.open(path).convert('RGB')) / 255.
+        self.img = np.array(Image.open(path).convert('RGB'), dtype=np.float32) / 255.
         self.h, self.w, _ = self.img.shape
         self.ph, self.pw = (self.h - patch_size + 1), (self.w - patch_size + 1)
         self.num_pixel = self.ph * self.pw
@@ -44,7 +44,7 @@ class PatchINR(Dataset):
         c_h = (idx // self.pw) + (self.patch_size // 2)
         c_w = (idx % self.pw) + (self.patch_size // 2)
         img = self.img[c_h - (self.patch_size // 2):c_h + (self.patch_size // 2 + 1),
-              c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
+                       c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
         flat = img.flatten()
 
         return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw], dtype=np.float32), flat
@@ -64,11 +64,8 @@ class PatchINRVal(Dataset):
     def __getitem__(self, idx):
         c_h = (idx // self.pw) + (self.patch_size // 2)
         c_w = (idx % self.pw) + (self.patch_size // 2)
-        img = self.img[c_h - (self.patch_size // 2):c_h + (self.patch_size // 2 + 1),
-              c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
-        flat = img.flatten()
-
-        return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw], dtype=np.float32), flat
+        return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw],
+                        dtype=np.float32)
 
 
 if __name__ == '__main__':
