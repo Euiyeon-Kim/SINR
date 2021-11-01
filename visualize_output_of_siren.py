@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 
 import torch
 
-from models.siren import SirenHook
 from utils.grid import create_grid
 from utils.utils import grid_to_fourier_inp
 
