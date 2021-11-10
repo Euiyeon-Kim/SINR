@@ -15,7 +15,7 @@ from utils.fourier import get_fourier, viz_fourier
 
 W0 = 50
 
-EXP_NAME = f'balloon_patch'
+EXP_NAME = f'tmp'
 PATH = './inputs/balloons.png'
 
 EPOCH = 50
@@ -23,7 +23,7 @@ LR = 1e-4
 
 SCALE = 10
 MAPPING_SIZE = 256
-PATCH_SIZE = 5
+PATCH_SIZE = 7
 BATCH_SIZE = 512
 
 if __name__ == '__main__':
@@ -55,7 +55,7 @@ if __name__ == '__main__':
             optim.zero_grad()
 
             pred = model(mapped_input)
-            loss = loss_fn(pred, patch)
+            loss = loss_fn(pred, patch.view(-1, PATCH_SIZE*PATCH_SIZE*3))
 
             loss.backward()
             optim.step()
