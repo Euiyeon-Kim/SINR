@@ -25,7 +25,6 @@ if __name__ == '__main__':
     img = torch.FloatTensor(read_img(PATH)).to(device)
     h, w, _ = img.shape
 
-
     B = sample_B(MAPPING_SIZE, SCALE, device)
     model = FourierReLU(coord_dim=MAPPING_SIZE, num_c=3, hidden_node=256, depth=5).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=LR)

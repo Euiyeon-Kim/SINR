@@ -12,7 +12,7 @@ from utils.utils import make_exp_dirs, get_device, read_img, sample_B
 EXP_NAME = 'flood/origin/bush'
 PATH = 'inputs/wild_bush.jpg'
 
-MAX_ITERS = 1000
+MAX_ITERS = 100000
 LR = 1e-4
 
 MAPPING_SIZE = 256
@@ -25,40 +25,41 @@ if __name__ == '__main__':
 
     img = torch.FloatTensor(read_img(PATH)).to(device)
     h, w, _ = img.shape
+    # B = sample_B(MAPPING_SIZE, SCALE, device)
+    B_gauss = np.random.randn(MAPPING_SIZE, 2) * SCALE
 
-    dataset = LargeINR(PATH)
-    dataloader = DataLoader(dataset, shuffle=True, batch_size=2048, drop_last=True)
+    dataset = LargeINR(PATH, B_gauss)
+    dataloader = DataLoader(dataset, shuffle=True, batch_size=4096, drop_last=True)
     test_loader = DataLoader(dataset, shuffle=False, batch_size=2048, drop_last=False)
 
-    B = sample_B(MAPPING_SIZE, SCALE, device)
     model = FourierReLU(coord_dim=MAPPING_SIZE, num_c=3, hidden_node=256, depth=5).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
 
+    step_per_epoch = len(dataloader)
     for i in range(MAX_ITERS):
         model.train()
-        for data in dataloader:
-            coord, pixel, _ = data
+        for j, data in enumerate(dataloader):
+            coord, pixel = data
             coord, pixel = coord.to(device), pixel.to(device)
-            mapped_input = torch.sin((2. * np.pi * coord) @ B.t())
 
             optim.zero_grad()
-            pred = model(mapped_input)
-            loss = loss_fn(pred, img)
+            pred = model(coord)
+            loss = loss_fn(pred, pixel)
 
             loss.backward()
             optim.step()
 
-            writer.add_scalar("loss", loss.item(), i)
+            writer.add_scalar("loss", loss.item(), i*step_per_epoch+j)
 
         if i % 10 == 0:
             model.eval()
             pred = np.zeros((h, w, 3))
             for h_idx, data in enumerate(test_loader):
-                coord, pixel, origin_coord = data
+                coord, pixel = data
                 coord, pixel = coord.to(device), pixel.to(device)
-                mapped_input = torch.sin((2. * np.pi * coord) @ B.t())
-                pred_w = model(mapped_input)
+
+                pred_w = model(coord)
                 pred[h_idx, :, :] = pred_w.detach().cpu().numpy()
 
             pred = Image.fromarray(np.array(pred * 255.).astype(np.uint8))

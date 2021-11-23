@@ -92,10 +92,13 @@ class PoC(Dataset):
 
 
 class LargeINR(Dataset):
-    def __init__(self, path):
+    def __init__(self, path, b):
         self.img = np.array(Image.open(path).convert('RGB'), dtype=np.float32) / 255.
         self.h, self.w, _ = self.img.shape
         self.num_pixel = self.h * self.w
+        grid_x, grid_y = np.meshgrid(np.linspace(0, 1, self.w), np.linspace(0, 1, self.h))
+        self.grid = np.stack([grid_y, grid_x], axis=-1)
+        self.mapped_grid = np.sin((2 * np.pi * self.grid) @ b.T).astype(np.float32)
 
     def __len__(self):
         return self.num_pixel
@@ -104,9 +107,8 @@ class LargeINR(Dataset):
         h_idx = item // self.w
         w_idx = item % self.w
         pixel = self.img[h_idx, w_idx, :]
-        coord = np.array([h_idx/self.h, w_idx/self.w], dtype=np.float32)
-        origin_coord = np.array([h_idx, w_idx], dtype=np.float32)
-        return coord, pixel, origin_coord
+        coord = self.mapped_grid[h_idx, w_idx, :]
+        return coord, pixel
 
 
 class FLOODINR(Dataset):

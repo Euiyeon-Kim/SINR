@@ -8,8 +8,8 @@ from models.siren import FourierReLU
 from utils.utils import prepare_fourier_inp
 
 
-EXP_NAME = f'flood/origin/bush'
-PATH = 'inputs/wild_bush.jpg'
+EXP_NAME = f'fourier_relu/origin/light'
+PATH = 'inputs/lightning1.png'
 
 MAX_ITERS = 1000
 LR = 1e-4
