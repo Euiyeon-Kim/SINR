@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 
 
-NAME = 'balloons'
+NAME = 'wild_bush'
 PATH = f'./inputs/{NAME}.png'
 PATCH_SIZE = 32
 OVERLAP = 16

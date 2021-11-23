@@ -27,6 +27,6 @@ if __name__ == '__main__':
 
     small_img = read_img(SMALL_PATH)
 
-    noise_mapper = MappingNet(in_f=SMALL_COND_RES, out_f=256, hidden_node=256, )
+    noise_mapper = MappingNet(in_f=SMALL_COND_RES, out_f=256, hidden_node=256)
 
 

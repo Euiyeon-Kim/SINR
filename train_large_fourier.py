@@ -19,12 +19,16 @@ MAPPING_SIZE = 256
 SCALE = 10
 
 if __name__ == '__main__':
-    # writer = make_exp_dirs(EXP_NAME)
+
+    writer = make_exp_dirs(EXP_NAME)
     device = get_device()
 
     img = torch.FloatTensor(read_img(PATH)).to(device)
     h, w, _ = img.shape
 
+    dataset = LargeINR(PATH)
+    dataloader = DataLoader(dataset, shuffle=True, batch_size=2048, drop_last=True)
+    test_loader = DataLoader(dataset, shuffle=False, batch_size=2048, drop_last=False)
 
     B = sample_B(MAPPING_SIZE, SCALE, device)
     model = FourierReLU(coord_dim=MAPPING_SIZE, num_c=3, hidden_node=256, depth=5).to(device)

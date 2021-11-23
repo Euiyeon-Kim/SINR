@@ -85,19 +85,65 @@ class PoC(Dataset):
         img = self.img[c_h - (self.patch_size // 2):c_h + (self.patch_size // 2 + 1),
                        c_w - (self.patch_size // 2):c_w + (self.patch_size // 2 + 1), :]
         flat = img.flatten()
-        return np.array([(c_h - (self.patch_size // 2)) / self.ph, (c_w - (self.patch_size // 2)) / self.pw], dtype=np.float32), flat
+        return np.array([(c_h - (self.patch_size // 2)) / self.ph,
+                         (c_w - (self.patch_size // 2)) / self.pw],
+                        dtype=np.float32), \
+               flat
+
+
+class LargeINR(Dataset):
+    def __init__(self, path):
+        self.img = np.array(Image.open(path).convert('RGB'), dtype=np.float32) / 255.
+        self.h, self.w, _ = self.img.shape
+        self.num_pixel = self.h * self.w
+
+    def __len__(self):
+        return self.num_pixel
+
+    def __getitem__(self, item):
+        h_idx = item // self.w
+        w_idx = item % self.w
+        pixel = self.img[h_idx, w_idx, :]
+        coord = np.array([h_idx/self.h, w_idx/self.w], dtype=np.float32)
+        origin_coord = np.array([h_idx, w_idx], dtype=np.float32)
+        return coord, pixel, origin_coord
+
+
+class FLOODINR(Dataset):
+    def __init__(self, path):
+        self.img = np.array(Image.open(path).convert('RGB'), dtype=np.float32) / 255.
+        self.h, self.w, _ = self.img.shape
+        self.num_pixel = self.h * self.w
+
+    def __len__(self):
+        return self.num_pixel
+
+    def __getitem__(self, item):
+        h_idx = item // self.w
+        w_idx = item % self.w
+        pixel = self.img[h_idx, w_idx, :]
+        coord = np.array([h_idx/self.h, w_idx/self.w], dtype=np.float32)
+        origin_coord = np.array([h_idx, w_idx], dtype=np.float32)
+        return coord, pixel, origin_coord
 
 
 if __name__ == '__main__':
-    import torch
     from torch.utils.data import DataLoader
-    dataset = PatchINR('../inputs/balloons.png')
+    dataset = LargeINR('../inputs/wild_bush.jpg')
     loader = DataLoader(dataset, shuffle=False, batch_size=128)
-    for data in loader:
-        coord, img = data
-        from torchvision.utils import save_image
-        print(coord.shape)
-        print(img.shape)
-    exit()
 
+    from PIL import Image
+    origin = Image.open('../inputs/wild_bush.jpg')
+    sanity = np.zeros_like(np.array(origin), dtype=np.float32)
+
+    for data in loader:
+        coord, pixel, origin_coord = data
+        for o, c in zip(origin_coord, pixel):
+            o = o.numpy()
+            c = c.numpy()
+            sanity[o[0], o[1], :] = c
+
+    sanity = np.array(sanity*255.).astype(np.uint8)
+    recon = Image.fromarray(sanity)
+    recon.save('tmp.jpg')
 
