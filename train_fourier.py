@@ -4,20 +4,18 @@ import torch
 from torchvision.utils import save_image
 from torch.utils.tensorboard import SummaryWriter
 
-from models.siren import SirenModel
+from models.siren import FourierReLU
 from utils.utils import prepare_fourier_inp
-from utils.fourier import get_fourier, viz_fourier
 
-W0 = 25
 
-EXP_NAME = f'stripe_fourier_log/256_5_{W0}'
-PATH = './inputs/stripe.jpg'
+EXP_NAME = f'flood/origin/bush'
+PATH = 'inputs/wild_bush.jpg'
 
 MAX_ITERS = 1000
 LR = 1e-4
 
 SCALE = 10
-MAPPING_SIZE = 256
+MAPPING_SIZE = 64
 
 
 if __name__ == '__main__':
@@ -28,7 +26,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     img, B, mapped_input = prepare_fourier_inp(PATH, device, mapping_size=MAPPING_SIZE, scale=SCALE)
-    model = SirenModel(coord_dim=MAPPING_SIZE * 2, num_c=3, w0=W0).to(device)
+    model = FourierReLU(coord_dim=MAPPING_SIZE * 2, num_c=3, hidden_node=256, depth=5).to(device)
 
     optim = torch.optim.Adam(model.parameters(), lr=LR)
     loss_fn = torch.nn.MSELoss()
@@ -47,12 +45,13 @@ if __name__ == '__main__':
 
         if i % 10 == 0:
             pred_img = (pred * 255.).detach().cpu().numpy()
-            fourier_info = get_fourier(pred_img)
-            inr_viz_dict = viz_fourier(fourier_info, dir=None)
 
-            import cv2
-            cv2.imwrite(f'exps/{EXP_NAME}/img/{i}_mag.jpg', inr_viz_dict['gray']['mag'])
-            cv2.imwrite(f'exps/{EXP_NAME}/img/{i}_phase.jpg', inr_viz_dict['gray']['phase'])
+            # Log Fourier
+            # fourier_info = get_fourier(pred_img)
+            # inr_viz_dict = viz_fourier(fourier_info, dir=None)
+            # import cv2
+            # cv2.imwrite(f'exps/{EXP_NAME}/img/{i}_mag.jpg', inr_viz_dict['gray']['mag'])
+            # cv2.imwrite(f'exps/{EXP_NAME}/img/{i}_phase.jpg', inr_viz_dict['gray']['phase'])
 
             pred = pred.permute(2, 0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')

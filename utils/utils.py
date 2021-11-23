@@ -26,8 +26,8 @@ def sample_B(mapping_size, scale, device):
 
 def grid_to_fourier_inp(grid, B):
     x_proj = (2. * np.pi * grid) @ B.t()
-    # mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
-    return torch.sin(x_proj)
+    mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+    return mapped_input
 
 
 def prepare_siren_inp(path, device):

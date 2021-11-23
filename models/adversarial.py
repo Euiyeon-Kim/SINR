@@ -45,7 +45,6 @@ class MappingSIREN(nn.Module):
         for _ in range(1, depth - 1):
             layers.append(SirenLayer(in_f=hidden_node, out_f=hidden_node, w0=w0))
         layers.append(SirenLayer(in_f=hidden_node, out_f=num_c, is_last=True))
-        # layers.append(nn.Sigmoid())
         self.layers = nn.Sequential(*layers)
 
     def forward(self, coords):

@@ -13,7 +13,7 @@ from utils.fourier import get_fourier, viz_fourier
 
 
 EXP_NAME = 'birds_fourier/what_siren_do'
-PATH = './inputs/birds.png'
+PATH = '../inputs/birds.png'
 PTH_PATH = 'exps/birds_fourier/ckpt/final.pth'
 B_PATH = 'exps/birds_fourier/ckpt/B.pt'
 
