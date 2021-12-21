@@ -5,14 +5,14 @@ from torchvision.utils import save_image
 
 def create_grid(h, w, device, min_v=0, max_v=1):
     grid_y, grid_x = torch.meshgrid([torch.linspace(min_v, max_v, steps=h),
-                                     torch.linspace(min_v, max_v, steps=w)])
+                                     torch.linspace(min_v, max_v, steps=w)], indexing='ij')
     grid = torch.stack([grid_y, grid_x], dim=-1)
     return grid.to(device)
 
 
 def create_flatten_grid(h, w, device, min_v=0, max_v=1):
     grid_y, grid_x = torch.meshgrid([torch.linspace(min_v, max_v, steps=h),
-                                     torch.linspace(min_v, max_v, steps=w)])
+                                     torch.linspace(min_v, max_v, steps=w)], indexing='ij')
     grid_y = torch.unsqueeze(grid_y.flatten(), dim=0)
     grid_x = torch.unsqueeze(grid_x.flatten(), dim=0)
     return grid_x.to(device), grid_y.to(device)

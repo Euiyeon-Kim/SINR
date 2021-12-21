@@ -127,6 +127,15 @@ class FourierReLU(nn.Module):
         return x
 
 
+class Flood(nn.Module):
+    def __init__(self, patch_num, coord_dim, num_c, hidden_node=256, depth=5):
+        super(Flood, self).__init__()
+
+    def forward(self, coords):
+        pass
+
+
+
 # if __name__ == '__main__':
 #     from utils.grid import create_grid
 #     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

@@ -8,14 +8,14 @@ from models.siren import FourierReLU
 from utils.utils import prepare_fourier_inp
 
 
-EXP_NAME = f'fourier_relu/origin/light'
-PATH = 'inputs/lightning1.png'
+EXP_NAME = 'flow/origin'
+PATH = 'inputs/balloons.png'
 
-MAX_ITERS = 1000
+MAX_ITERS = 2000
 LR = 1e-4
 
 SCALE = 10
-MAPPING_SIZE = 64
+MAPPING_SIZE = 256
 
 
 if __name__ == '__main__':

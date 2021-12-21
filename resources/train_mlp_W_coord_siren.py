@@ -90,8 +90,6 @@ if __name__ == '__main__':
             d_optim.step()
 
         # Log discriminator losses
-        d_loss = d_real_loss + d_fake_loss + gradient_penalty
-        critic = d_real_loss - d_fake_loss
         writer.add_scalar("d/total", d_loss.item(), iter)
         writer.add_scalar("d/critic", critic.item(), iter)
         writer.add_scalar("d/gp", gradient_penalty.item(), iter)

@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 def create_grid(h, w, device, min_v=0, max_v=1):
     grid_y, grid_x = torch.meshgrid([torch.linspace(min_v, max_v, steps=h),
-                                     torch.linspace(min_v, max_v, steps=w)])
+                                     torch.linspace(min_v, max_v, steps=w)], indexing='ij')
     grid = torch.stack([grid_y, grid_x], dim=-1)
     return grid.to(device)
 

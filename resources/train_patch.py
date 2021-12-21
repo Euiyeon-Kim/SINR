@@ -16,7 +16,7 @@ from utils.fourier import get_fourier, viz_fourier
 W0 = 50
 
 EXP_NAME = f'tmp'
-PATH = './inputs/balloons.png'
+PATH = '../inputs/balloons.png'
 
 EPOCH = 50
 LR = 1e-4
