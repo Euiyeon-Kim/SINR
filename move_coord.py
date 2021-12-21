@@ -10,7 +10,7 @@ from models.adversarial import Discriminator, MappingConv
 
 from utils.loss import calcul_gp
 from utils.utils import make_exp_dirs, prepare_siren_inp
-from utils.grid import visualize_grid, shuffle_grid
+from utils.grid import visualize_grid, shuffle_grid, cutout_grid
 from utils.flow import warp
 
 '''
@@ -18,7 +18,7 @@ from utils.flow import warp
     flow_generator: input / 4 Resolution noise를 bilinear로 upsample하고 flow 생성 학습
 '''
 
-EXP_NAME = 'flow/swap_blur'
+EXP_NAME = 'flow/cutout'
 PATH = 'inputs/balloons.png'
 
 PTH_PATH = 'exps/flow/origin/ckpt/final.pth'
@@ -57,9 +57,9 @@ if __name__ == '__main__':
     # Modification on grid
     # from scipy.ndimage.filters import gaussian_filter
     # origin_grid = torch.FloatTensor(gaussian_filter(origin_grid.cpu(), sigma=0.5)).to(device)
-    origin_grid = shuffle_grid(h, w, device)
-
-    x_proj = (2. * np.pi * origin_grid) @ B.t()
+    # origin_grid = shuffle_grid(h, w, device)
+    origin_grid = cutout_grid(h, w, device)
+    x_proj = torch.einsum('hwc,fc->hwf', (2. * torch.pi * origin_grid), B)
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
     visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Generate fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w//2)).to(device) * NOISE_SCALE
             fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             m_optim.zero_grad()
 
             # Train with fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w//2)).to(device) * NOISE_SCALE
             fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 

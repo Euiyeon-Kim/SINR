@@ -25,8 +25,17 @@ def shuffle_grid(h, w, device, min_v=-1, max_v=1):
     new_grid = np.zeros_like(np_grid)
     new_grid[:, :w // 2, :] = np_grid[:, w // 2:, :]
     new_grid[:, w // 2:, :] = np_grid[:, :w // 2, :]
-    new_grid = gaussian_filter(new_grid, sigma=0.5)
+    # new_grid = gaussian_filter(new_grid, sigma=0.5)
     np2torch = torch.FloatTensor(new_grid).to(device)
+    return np2torch
+
+
+def cutout_grid(h, w, device, min_v=-1, max_v=1):
+    np_y, np_x = np.meshgrid(np.linspace(start=min_v, stop=max_v, num=w), np.linspace(start=min_v, stop=max_v, num=h))
+    np_grid = np.stack([np_x, np_y], axis=-1)
+    tmp = np.split(np_grid, 4, axis=1)
+    cutoutted = np.concatenate((tmp[0], tmp[-1]), axis=1)
+    np2torch = torch.FloatTensor(cutoutted).to(device)
     return np2torch
 
 
