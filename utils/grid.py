@@ -31,8 +31,8 @@ def shuffle_grid(h, w, device, min_v=0, max_v=1):
 def visualize_grid(grid, path, device, name=None):
     h, w, _ = grid.shape
     r = torch.ones((h, w)).to(device) * 128.
-    g = grid[:, :, 0] * 255.
-    b = grid[:, :, 1] * 255.
+    g = (grid[:, :, 0] + 1.) * 127.5
+    b = (grid[:, :, 1] + 1.) * 127.5
     img = torch.stack([r, g, b], dim=0) / 255.
     if name:
         print(f'=============== {name} ===============')

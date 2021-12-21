@@ -55,8 +55,9 @@ if __name__ == '__main__':
     # Recon
     for param in inr.parameters():
         param.trainable = False
-    # recon = model(mapped_input).permute(2, 0, 1)
-    # save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
+    recon = inr(mapped_input).permute(2, 0, 1)
+    recon = (recon + 1.) / 2.  # (-1, 1) -> (0, 1)
+    save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
 
     # Prepare model
     flow_generator = MappingConv(in_c=4, out_c=2).to(device)
@@ -70,7 +71,7 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Generate fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device)
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * 100.
             fg_inp = torch.unsqueeze(torch.concat((noise, origin_img), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 
@@ -105,7 +106,7 @@ if __name__ == '__main__':
             m_optim.zero_grad()
 
             # Train with fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device)
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * 100.
             fg_inp = torch.unsqueeze(torch.concat((noise, origin_img), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 
@@ -125,7 +126,8 @@ if __name__ == '__main__':
         writer.add_scalar("g/critic - min", adv_loss.item(), iter)
         writer.flush()
 
-        if (iter + 1) % 50 == 0:
+        if (iter + 1) % 10 == 0:
+            generated_img = (generated_img + 1.) / 2.   # (-1, 1) -> (0, 1)
             save_image(generated_img, f'exps/{EXP_NAME}/img/{iter}.jpg')
             viz_moved_real_grid = moved_real_grid.squeeze().permute(1, 2, 0)
             visualize_grid(viz_moved_real_grid, f'exps/{EXP_NAME}/grid/{iter}.jpg', device)

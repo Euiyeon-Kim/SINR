@@ -35,7 +35,7 @@ class MappingConv(nn.Module):
         x = self.head(x)
         x = self.body(x)
         x = self.tail(x)
-        return x * 1000. # nn.Sigmoid()(x)
+        return x     # nn.Sigmoid()(x)
 
 
 class MappingSIREN(nn.Module):

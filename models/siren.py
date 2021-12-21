@@ -119,7 +119,7 @@ class FourierReLU(nn.Module):
             layers.append(nn.Linear(hidden_node, hidden_node))
             layers.append(nn.ReLU())
         layers.append(nn.Linear(hidden_node, num_c))
-        layers.append(nn.Sigmoid())
+        layers.append(nn.Tanh())
         self.layers = nn.Sequential(*layers)
 
     def forward(self, coords):

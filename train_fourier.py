@@ -54,6 +54,7 @@ if __name__ == '__main__':
             # cv2.imwrite(f'exps/{EXP_NAME}/img/{i}_phase.jpg', inr_viz_dict['gray']['phase'])
 
             pred = pred.permute(2, 0, 1)
+            pred = (pred + 1.) / 2.   # (-1, 1) -> (0, 1)
             save_image(pred, f'exps/{EXP_NAME}/img/{i}.jpg')
 
     torch.save(model.state_dict(), f'exps/{EXP_NAME}/ckpt/final.pth')

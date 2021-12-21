@@ -7,7 +7,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 
 
-def create_grid(h, w, device, min_v=0, max_v=1):
+def create_grid(h, w, device, min_v=-1, max_v=1):
     grid_y, grid_x = torch.meshgrid([torch.linspace(min_v, max_v, steps=h),
                                      torch.linspace(min_v, max_v, steps=w)], indexing='ij')
     grid = torch.stack([grid_y, grid_x], dim=-1)
@@ -15,7 +15,7 @@ def create_grid(h, w, device, min_v=0, max_v=1):
 
 
 def read_img(path):
-    img = np.array(Image.open(path).convert('RGB')) / 255.
+    img = (np.array(Image.open(path).convert('RGB')) / 127.5) - 1.
     return img
 
 
@@ -25,7 +25,7 @@ def sample_B(mapping_size, scale, device):
 
 
 def grid_to_fourier_inp(grid, B):
-    x_proj = (2. * np.pi * grid) @ B.t()
+    x_proj = torch.einsum('hwc,fc->hwf', (2. * torch.pi * grid), B)
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
     return mapped_input
 
