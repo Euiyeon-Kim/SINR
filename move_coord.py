@@ -10,7 +10,7 @@ from models.adversarial import Discriminator, MappingConv
 
 from utils.loss import calcul_gp
 from utils.utils import make_exp_dirs, prepare_siren_inp
-from utils.grid import visualize_grid
+from utils.grid import visualize_grid, shuffle_grid
 from utils.flow import warp
 
 '''
@@ -18,7 +18,7 @@ from utils.flow import warp
     flow_generator: input / 4 Resolution noise를 bilinear로 upsample하고 flow 생성 학습
 '''
 
-EXP_NAME = 'flow/move_debug'
+EXP_NAME = 'flow/swap_blur'
 PATH = 'inputs/balloons.png'
 
 PTH_PATH = 'exps/flow/origin/ckpt/final.pth'
@@ -29,9 +29,10 @@ LR = 1e-4
 MAX_ITERS = 1000000
 N_CRITIC = 5
 GEN_ITER = 3
-GP_LAMBDA = 10
-PATCH_SIZE = 64
-SCALE_FLOW = 1000.
+GP_LAMBDA = 100
+PATCH_SIZE = 96
+# REG_LAMBDA = 100
+NOISE_SCALE = 1
 
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/grid', exist_ok=True)
@@ -48,16 +49,26 @@ if __name__ == '__main__':
     origin_img = img.permute(2, 0, 1)
 
     # Prepare grid
-    visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
+    # x_proj = (2. * np.pi * origin_grid) @ B.t()
+    # mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+    # visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
+
+
+    # Modification on grid
+    # from scipy.ndimage.filters import gaussian_filter
+    # origin_grid = torch.FloatTensor(gaussian_filter(origin_grid.cpu(), sigma=0.5)).to(device)
+    origin_grid = shuffle_grid(h, w, device)
+
     x_proj = (2. * np.pi * origin_grid) @ B.t()
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+    visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
 
     # Recon
     for param in inr.parameters():
         param.trainable = False
-    recon = inr(mapped_input).permute(2, 0, 1)
-    recon = (recon + 1.) / 2.  # (-1, 1) -> (0, 1)
-    save_image(recon, f'exps/{EXP_NAME}/recon.jpg')
+    recon = inr(mapped_input).permute(2, 0, 1).detach()
+    viz_recon = (recon + 1.) / 2.  # (-1, 1) -> (0, 1)
+    save_image(viz_recon, f'exps/{EXP_NAME}/recon.jpg')
 
     # Prepare model
     flow_generator = MappingConv(in_c=4, out_c=2).to(device)
@@ -71,8 +82,8 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Generate fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * 100.
-            fg_inp = torch.unsqueeze(torch.concat((noise, origin_img), 0), 0)
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 
             generated_mapped_inp, moved_real_grid = warp(mapped_input, origin_grid, generated_flow, device)
@@ -106,8 +117,8 @@ if __name__ == '__main__':
             m_optim.zero_grad()
 
             # Train with fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * 100.
-            fg_inp = torch.unsqueeze(torch.concat((noise, origin_img), 0), 0)
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
             generated_flow = flow_generator(fg_inp)[0]
 
             generated_mapped_inp, moved_real_grid = warp(mapped_input, origin_grid, generated_flow, device)
@@ -117,13 +128,16 @@ if __name__ == '__main__':
 
             fake_prob_out = d(fake_patch)
             adv_loss = -fake_prob_out.mean()
-
-            adv_loss.backward()
+            # reg_loss = torch.mean(torch.abs(generated_flow))
+            g_loss = adv_loss   # - reg_loss * REG_LAMBDA
+            g_loss.backward()
             m_optim.step()
 
         # Log mapper losses
-        writer.add_scalar("g/total", adv_loss.item(), iter)
+        writer.add_scalar("g/total", g_loss.item(), iter)
         writer.add_scalar("g/critic - min", adv_loss.item(), iter)
+        # writer.add_scalar("g/flow_reg", reg_loss.item(), iter)
+
         writer.flush()
 
         if (iter + 1) % 10 == 0:
