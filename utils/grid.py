@@ -25,6 +25,8 @@ def shuffle_grid(h, w, device, min_v=-1, max_v=1):
     new_grid = np.zeros_like(np_grid)
     new_grid[:, :w // 2, :] = np_grid[:, w // 2:, :]
     new_grid[:, w // 2:, :] = np_grid[:, :w // 2, :]
+    # new_grid[:h//2, :, :] = np_grid[h//2:, :, :]
+    # new_grid[h//2:, :, :] = np_grid[:h//2, :, :]
     # new_grid = gaussian_filter(new_grid, sigma=0.5)
     np2torch = torch.FloatTensor(new_grid).to(device)
     return np2torch

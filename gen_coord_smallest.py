@@ -18,21 +18,20 @@ from utils.flow import warp
     flow_generator: input / 4 Resolution noise를 bilinear로 upsample하고 flow 생성 학습
 '''
 
-EXP_NAME = 'flow/cutout'
-PATH = 'inputs/balloons.png'
+EXP_NAME = 'flow/debug'
+PATH = 'inputs/small_balloons.png'
 
 PTH_PATH = 'exps/flow/origin/ckpt/final.pth'
 B_PATH = 'exps/flow/origin/ckpt/B.pt'
 MAPPING_SIZE = 256
 
 LR = 1e-4
-MAX_ITERS = 1000000
+MAX_ITERS = 2000
 N_CRITIC = 5
 GEN_ITER = 3
-GP_LAMBDA = 100
-PATCH_SIZE = 96
-# REG_LAMBDA = 100
+GP_LAMBDA = 10
 NOISE_SCALE = 1
+
 
 if __name__ == '__main__':
     os.makedirs(f'exps/{EXP_NAME}/grid', exist_ok=True)
@@ -43,22 +42,12 @@ if __name__ == '__main__':
     inr.load_state_dict(torch.load(PTH_PATH))
     B = torch.load(B_PATH).to(device)
 
-    # Read image
-    img, origin_grid = prepare_siren_inp(PATH, device)
-    h, w, _ = img.shape
-    origin_img = img.permute(2, 0, 1)
+    # Read image - 제일 작은 스케일 이미지 원본
+    real_img, origin_grid = prepare_siren_inp(PATH, device)
+    h, w, _ = real_img.shape
+    d_ref_img = real_img.permute(2, 0, 1)
 
-    # Prepare grid
-    # x_proj = (2. * np.pi * origin_grid) @ B.t()
-    # mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
-    # visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
-
-
-    # Modification on grid
-    # from scipy.ndimage.filters import gaussian_filter
-    # origin_grid = torch.FloatTensor(gaussian_filter(origin_grid.cpu(), sigma=0.5)).to(device)
-    # origin_grid = shuffle_grid(h, w, device)
-    origin_grid = cutout_grid(h, w, device)
+    # Origin 크기로 INR 학습했을 때 제일 작은 scale uniform grid 그냥 넣으면 나오는 결과
     x_proj = torch.einsum('hwc,fc->hwf', (2. * torch.pi * origin_grid), B)
     mapped_input = torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
     visualize_grid(origin_grid, f'exps/{EXP_NAME}/base_grid.jpg', device)
@@ -71,9 +60,9 @@ if __name__ == '__main__':
     save_image(viz_recon, f'exps/{EXP_NAME}/recon.jpg')
 
     # Prepare model
-    flow_generator = MappingConv(in_c=4, out_c=2).to(device)
-    m_optim = torch.optim.Adam(flow_generator.parameters(), lr=LR, betas=(0.5, 0.999))
-    d = Discriminator(in_c=3, nfc=64).to(device)
+    coord_generator = MappingConv(in_c=1, out_c=2).to(device)
+    m_optim = torch.optim.Adam(coord_generator.parameters(), lr=LR, betas=(0.5, 0.999))
+    d = Discriminator(in_c=3, nfc=32).to(device)
     d_optim = torch.optim.Adam(d.parameters(), lr=LR, betas=(0.5, 0.999))
 
     for iter in range(MAX_ITERS):
@@ -82,17 +71,21 @@ if __name__ == '__main__':
             d_optim.zero_grad()
 
             # Generate fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w//2)).to(device) * NOISE_SCALE
-            fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
-            generated_flow = flow_generator(fg_inp)[0]
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            # gridxnoise = torch.einsum('chw,hwg->ghw', noise, origin_grid)
+            fg_inp = torch.unsqueeze(noise, 0)     # torch.unsqueeze(torch.concat((noise, recon), 0), 0)
+            generated_coord = coord_generator(fg_inp)[0].permute(1, 2, 0)
+            generated_x_proj = torch.einsum('hwc,fc->hwf', (2. * torch.pi * generated_coord), B)
+            generated_mapped_input = torch.cat([torch.sin(generated_x_proj), torch.cos(generated_x_proj)], dim=-1)
 
-            generated_mapped_inp, moved_real_grid = warp(mapped_input, origin_grid, generated_flow, device)
-            generated_img = inr(generated_mapped_inp)
+            generated_img = inr(generated_mapped_input)
             generated_img = generated_img.permute(2, 0, 1)
-            fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated_img), dim=0)
+            # fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated_img), dim=0)
+            fake_patch = torch.unsqueeze(generated_img, dim=0)
 
             # Real patch
-            real_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(origin_img), dim=0)
+            # real_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(origin_img), dim=0)
+            real_patch = torch.unsqueeze(d_ref_img, dim=0)
 
             d_real = d(real_patch)
             loss_r = -d_real.mean()
@@ -113,18 +106,22 @@ if __name__ == '__main__':
         writer.add_scalar("d/gp", gradient_penalty.item(), iter)
 
         for i in range(GEN_ITER):
-            flow_generator.train()
+            coord_generator.train()
             m_optim.zero_grad()
 
             # Train with fake image
-            noise = torch.normal(mean=0, std=1.0, size=(1, h, w//2)).to(device) * NOISE_SCALE
-            fg_inp = torch.unsqueeze(torch.concat((noise, recon), 0), 0)
-            generated_flow = flow_generator(fg_inp)[0]
+            noise = torch.normal(mean=0, std=1.0, size=(1, h, w)).to(device) * NOISE_SCALE
+            # gridxnoise = torch.einsum('chw,hwg->ghw', noise, origin_grid)
+            fg_inp = torch.unsqueeze(noise, 0)  # torch.unsqueeze(torch.concat((noise, recon), 0), 0)
+            generated_coord = coord_generator(fg_inp)[0].permute(1, 2, 0)
+            generated_x_proj = torch.einsum('hwc,fc->hwf', (2. * torch.pi * generated_coord), B)
+            generated_mapped_input = torch.cat([torch.sin(generated_x_proj), torch.cos(generated_x_proj)], dim=-1)
 
-            generated_mapped_inp, moved_real_grid = warp(mapped_input, origin_grid, generated_flow, device)
-            generated_img = inr(generated_mapped_inp)
+            generated_img = inr(generated_mapped_input)
             generated_img = generated_img.permute(2, 0, 1)
-            fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated_img), dim=0)
+
+            # fake_patch = torch.unsqueeze(RandomCrop(size=PATCH_SIZE)(generated_img), dim=0)
+            fake_patch = torch.unsqueeze(generated_img, dim=0)
 
             fake_prob_out = d(fake_patch)
             adv_loss = -fake_prob_out.mean()
@@ -143,5 +140,6 @@ if __name__ == '__main__':
         if (iter + 1) % 10 == 0:
             generated_img = (generated_img + 1.) / 2.   # (-1, 1) -> (0, 1)
             save_image(generated_img, f'exps/{EXP_NAME}/img/{iter}.jpg')
-            viz_moved_real_grid = moved_real_grid.squeeze().permute(1, 2, 0)
-            visualize_grid(viz_moved_real_grid, f'exps/{EXP_NAME}/grid/{iter}.jpg', device)
+            visualize_grid(generated_coord, f'exps/{EXP_NAME}/grid/{iter}.jpg', device)
+
+    torch.save(coord_generator.state_dict(), f'exps/{EXP_NAME}/ckpt/final_G.pth')
