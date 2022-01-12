@@ -78,7 +78,6 @@ class ConvBlock(nn.Sequential):
     def __init__(self, in_channel, out_channel, kernel_size, stride, pad):
         super(ConvBlock, self).__init__()
         self.add_module('conv', nn.Conv2d(in_channel, out_channel, kernel_size=kernel_size, stride=stride, padding=pad)),
-        # self.add_module('norm', nn.BatchNorm2d(out_channel)),
         self.add_module('LeakyRelu', nn.LeakyReLU(0.2, inplace=True))
 
 
@@ -86,7 +85,6 @@ class DBlock(nn.Sequential):
     def __init__(self, in_channel, out_channel, kernel_size, stride, pad):
         super(DBlock, self).__init__()
         self.add_module('conv', nn.Conv2d(in_channel, out_channel, kernel_size=kernel_size, stride=stride, padding=pad)),
-        self.add_module('norm', nn.BatchNorm2d(out_channel)),
         self.add_module('LeakyRelu', nn.LeakyReLU(0.2, inplace=True))
 
 
